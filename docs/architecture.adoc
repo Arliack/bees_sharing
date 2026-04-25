@@ -1,0 +1,379 @@
+= Partage d'essaims — Architecture globale
+Projet Abeilles
+:doctype: article
+:lang: fr
+:encoding: utf-8
+:toc: left
+:toc-title: Table des matières
+:toclevels: 3
+:numbered:
+:icons: font
+:source-highlighter: rouge
+:rouge-style: github
+:sectlinks:
+:sectanchors:
+
+[.lead]
+Diagramme d'architecture et description technique de la plateforme de partage d'essaims d'abeilles.
+Site statique hébergé sur GitHub Pages, backend Supabase (PostgreSQL + Edge Functions).
+
+Voir aussi : link:documentation.html[Documentation technique complète →]
+
+'''
+
+== Vue d'ensemble
+
+L'application est entièrement *statique* (hébergée sur GitHub Pages).
+Il n'y a pas de serveur applicatif : le navigateur communique directement avec *Supabase* via son SDK JavaScript.
+Les seuls traitements côté serveur sont les *Edge Functions Deno* de Supabase, déclenchées par webhooks pour l'envoi d'emails.
+
+[cols="1,3", options="header"]
+|===
+| Principe | Détail
+
+| *Zéro serveur applicatif*
+| GitHub Pages sert uniquement des fichiers statiques. Pas de Node.js, PHP ni Python.
+
+| *Backend-as-a-Service*
+| Supabase fournit PostgreSQL, une API REST auto-générée, des politiques de sécurité (RLS) et des webhooks.
+
+| *Authentification par tokens*
+| Pas de login utilisateur. Les actions sensibles (clôturer un essaim, se désabonner) passent par des tokens UUID 128 bits transmis par email.
+
+| *Zéro build step*
+| Pas de npm, bundler ou framework. HTML/CSS/JS vanilla pur.
+|===
+
+'''
+
+== Diagramme d'architecture
+
+[source]
+----
+ ┌──────────────────────────────────────┐
+ │         NAVIGATEUR (GitHub Pages)    │
+ │                                      │
+ │  index.html      deposer.html        │
+ │  gerer.html      desabonner.html     │
+ │                                      │
+ │  ┌─────────────────────────────────┐ │
+ │  │         Modules JS              │ │
+ │  │  carte.js      annonces.js      │ │
+ │  │  formulaire.js abonnements.js   │ │
+ │  │  gestion.js    config.js        │ │
+ │  └─────────────────────────────────┘ │
+ │                                      │
+ │  Leaflet 1.9  ·  supabase-js 2       │
+ │  CartoDB Voyager  ·  DM Sans         │
+ └────────────┬─────────────────────────┘
+              │  SDK JS — REST / JSON
+              │  SELECT · INSERT · RPC
+              │◄────────────────────────┐
+ ┌────────────▼─────────────────────────┤
+ │         SUPABASE                     │
+ │                                      │
+ │  ┌─────────────┐  ┌───────────────┐  │
+ │  │ PostgreSQL  │  │ Edge Function │  │
+ │  │             │  │ (Deno)        │  │
+ │  │  essaims    │  │               │  │
+ │  │  abonnements│  │ notifier-     │  │
+ │  │             │  │ abonnes       │  │
+ │  └──────┬──────┘  └───────┬───────┘  │
+ │         │   RLS · RPC     │ Webhook  │
+ │  ┌──────▼──────────────┐  │          │
+ │  │  gerer_essaim()     │  │          │
+ │  │  desabonner()       │  │          │
+ │  └─────────────────────┘  │          │
+ └───────────────────────────┼──────────┘
+                             │ HTTPS POST
+ ┌───────────────────────────▼──────────┐
+ │         APIS EXTERNES                │
+ │                                      │
+ │  geo.api.gouv.fr  → communes + GPS   │
+ │  Nominatim (OSM)  → geocoding dept   │
+ │  Resend API       → emails HTML      │
+ └──────────────────────────────────────┘
+----
+
+=== Couches applicatives
+
+[cols="1,2,3", options="header"]
+|===
+| Couche | Technologies | Responsabilité
+
+| *Frontend statique*
+| HTML5, CSS3, JS ES2020
+| Interface utilisateur complète. Toute la logique UI est côté client.
+
+| *Cartographie*
+| Leaflet 1.9 + CartoDB Voyager
+| Rendu de la carte, markers CSS animés, popups desktop, bottom-sheet mobile.
+
+| *SDK client*
+| supabase-js 2
+| Requêtes REST vers Supabase (SELECT, INSERT, appels RPC). Gère l'authentification anon.
+
+| *Base de données*
+| PostgreSQL (Supabase)
+| Persistance des essaims et abonnements. RLS pour isoler les accès.
+
+| *Sécurité BDD*
+| Row Level Security
+| Lecture publique filtrée, INSERT libre, UPDATE/DELETE uniquement via RPC.
+
+| *Logique serveur*
+| Edge Functions Deno
+| Webhook INSERT → interroge abonnements → envoie emails via Resend.
+
+| *Géocodage*
+| geo.api.gouv.fr · Nominatim
+| Autocomplete communes (formulaire + carte), zoom bounding-box sur département.
+
+| *Email*
+| Resend API
+| Envoi des alertes HTML aux abonnés. Liens désabonnement tokenisés.
+|===
+
+'''
+
+== Flux de données
+
+=== 1 — Signalement d'un essaim
+
+[source]
+----
+deposer.html
+  └─► formulaire.js (étapes 1→2→3 + validation)
+        └─► geo.api.gouv.fr (autocomplete commune → coordonnées GPS)
+        └─► supabase.from('essaims').insert({...}).select('token')
+              └─► Supabase génère token UUID automatiquement
+              └─► Retourne le token → lien gerer.html?token=UUID
+                    └─► Affiché + bouton Copier dans la confirmation
+----
+
+=== 2 — Notification des abonnés
+
+[source]
+----
+INSERT essaims (trigger webhook Supabase)
+  └─► Edge Function notifier-abonnes (Deno)
+        └─► SELECT abonnements WHERE departement ILIKE ...
+        └─► Pour chaque abonné :
+              └─► Resend API → email HTML
+                    ├── Lien vers index.html (carte)
+                    └── Lien désabonnement : desabonner.html?token=UUID
+----
+
+=== 3 — Affichage de la carte
+
+[source]
+----
+index.html (DOMContentLoaded)
+  ├─► initialiserCarte()       → Leaflet + CartoDB Voyager
+  └─► chargerEssaims()
+        ├─► chargerStats()     → 2 requêtes count parallèles → #stats-barre
+        ├─► SELECT essaims (disponible=true, order created_at DESC)
+        │     └─► filtre client : age > 7j ignorés
+        └─► ajouterMarqueur(essaim, ageHeures) pour chaque essaim
+              ├─► Desktop : popup Leaflet natif
+              └─► Mobile  : ouvrirBottomSheet() (window.innerWidth < 768)
+----
+
+=== 4 — Clôture depuis la carte
+
+[source]
+----
+Clic bouton « Parti » / « Récupéré » dans popup ou bottom-sheet
+  └─► marquerEssaimDepuisCarte(token, statut, btn)
+        └─► supabase.rpc('gerer_essaim', { p_token, p_statut })
+              ├─► 'ok'        → supprime marqueur + ferme panel + màj compteur
+              ├─► 'not_found' → "Déjà clôturé"
+              └─► erreur      → réactive boutons
+----
+
+=== 5 — Clôture via lien email
+
+[source]
+----
+URL : gerer.html?token=UUID
+  └─► gestion.js → chargerEssaim(token)
+        ├─► SELECT essaims WHERE token = ?
+        │     ├─► disponible=false → affiche statut final
+        │     └─► disponible=true  → afficherGestion() [boutons Parti / Récupéré]
+        └─► marquerEssaim(token, statut)
+              └─► supabase.rpc('gerer_essaim', ...)
+----
+
+=== 6 — Désabonnement
+
+[source]
+----
+URL : desabonner.html?token=UUID
+  └─► abonnements.js → traiterDesabonnement()
+        └─► supabase.rpc('desabonner', { p_token })
+              └─► DELETE FROM abonnements WHERE token = p_token
+----
+
+'''
+
+== Base de données
+
+=== Table `essaims`
+
+[cols="2,2,1,3", options="header"]
+|===
+| Colonne | Type SQL | Nullable | Description
+
+| `id` | `bigint IDENTITY` | non | Clé primaire auto-incrémentée
+| `token` | `uuid DEFAULT gen_random_uuid()` | non | Clé de gestion sans auth — UNIQUE
+| `prenom` | `text` | non | Prénom public du déposant
+| `email` | `text` | non | Email du déposant (non exposé en DOM)
+| `telephone` | `text` | oui | Téléphone facultatif
+| `commune` | `text` | non | Nom commune (issu de geo.api.gouv.fr)
+| `departement` | `text` | non | Nom complet du département
+| `latitude` | `float8` | non | Coordonnée GPS
+| `longitude` | `float8` | non | Coordonnée GPS
+| `description` | `text` | oui | Description libre de l'essaim
+| `date_dispo` | `date DEFAULT CURRENT_DATE` | non | Date de disponibilité
+| `disponible` | `boolean DEFAULT true` | non | Masque l'essaim quand `false`
+| `statut` | `text DEFAULT 'disponible'` | non | `disponible` \| `parti` \| `recupere`
+| `created_at` | `timestamptz DEFAULT now()` | non | Sert au calcul d'âge (J+7 = expiration)
+|===
+
+=== Table `abonnements`
+
+[cols="2,2,1,3", options="header"]
+|===
+| Colonne | Type SQL | Nullable | Description
+
+| `id` | `bigint IDENTITY` | non | Clé primaire
+| `token` | `uuid DEFAULT gen_random_uuid()` | non | Clé de désabonnement — UNIQUE
+| `email` | `text` | non | Email de l'abonné
+| `departement` | `text` | non | Département surveillé (nom complet)
+| `created_at` | `timestamptz DEFAULT now()` | non |
+|===
+
+Contrainte : `UNIQUE (email, departement)` — un email ne peut s'abonner qu'une fois par département.
+
+=== Fonctions RPC
+
+[cols="2,1,3", options="header"]
+|===
+| Signature | Retour | Description
+
+| `gerer_essaim(p_token uuid, p_statut text)`
+| `text`
+| Clôture un essaim. Retourne `ok`, `not_found` ou `statut_invalide`. `SECURITY DEFINER` — contourne RLS.
+
+| `desabonner(p_token uuid)`
+| `void`
+| Supprime un abonnement par son token. `SECURITY DEFINER`.
+|===
+
+=== Politiques Row Level Security
+
+[cols="1,1,3", options="header"]
+|===
+| Table | Opération | Règle
+
+| `essaims` | SELECT | `disponible = true` — seuls les essaims actifs sont lisibles publiquement
+| `essaims` | INSERT | `WITH CHECK (true)` — insertion libre sans authentification
+| `essaims` | UPDATE/DELETE | *Bloqué* — uniquement via RPC `SECURITY DEFINER`
+| `abonnements` | INSERT | `WITH CHECK (true)` — abonnement libre
+| `abonnements` | DELETE | *Bloqué* — uniquement via RPC `desabonner()`
+|===
+
+'''
+
+== Stack technique
+
+=== Frontend
+
+[cols="2,1,3", options="header"]
+|===
+| Technologie | Version | Rôle
+
+| HTML5 / CSS3 / JS | ES2020 | Structure, styles, logique UI — aucun framework
+| Leaflet.js | 1.9.4 | Carte interactive, markers DIV personnalisés, popups
+| CartoDB Voyager | — | Tuiles cartographiques raster (sans clé API)
+| supabase-js | 2.x | Client REST + authentification anon
+| DM Sans | — | Typographie Google Fonts (variable font)
+| geo.api.gouv.fr | v3 | Autocomplete communes françaises avec coordonnées
+| Nominatim OSM | v1 | Geocoding texte → bounding box pour zoom département
+|===
+
+=== Backend (Supabase)
+
+[cols="2,3", options="header"]
+|===
+| Composant | Rôle
+
+| PostgreSQL 15 | Stockage relationnel managé
+| REST API auto-générée | Expose les tables en endpoints HTTP sécurisés par RLS
+| Row Level Security | Contrôle d'accès au niveau ligne sans code applicatif
+| Edge Functions (Deno) | `notifier-abonnes` : webhook INSERT → email Resend
+| Webhooks | Déclenchement automatique sur événements BDD
+|===
+
+=== Hébergement et coûts
+
+[cols="1,1,1", options="header"]
+|===
+| Service | Tier | Coût
+
+| GitHub Pages | Free | Gratuit, HTTPS auto, CDN mondial
+| Supabase | Free | 500 MB BDD, 500K invocations Edge Functions/mois
+| Resend | Free | 3 000 emails/mois, 100/jour
+| CartoDB | Open | Gratuit pour usage non commercial
+| geo.api.gouv.fr | Public | Gratuit, officiel
+|===
+
+'''
+
+== Sécurité
+
+=== Gestion sans authentification
+
+Les tokens UUID (128 bits, `gen_random_uuid()`) remplacent les sessions utilisateur.
+Probabilité de collision : mathématiquement nulle.
+Transmis uniquement par email — impossible à deviner par force brute.
+
+=== Email du déposant
+
+L'email n'est pas retourné par l'API publique dans la configuration cible.
+Il est utilisé uniquement pour générer un `href="mailto:..."` côté JavaScript.
+Il n'est jamais inséré directement dans le DOM.
+
+TIP: Pour renforcer la confidentialité, créer une vue Supabase qui exclut la colonne `email` du SELECT public, et exposer le `mailto:` via une RPC dédiée.
+
+=== Protection XSS
+
+Toutes les données utilisateur affichées dans le HTML passent par `escapeHtml()` :
+
+[source,javascript]
+----
+function escapeHtml(texte) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(texte || ''));
+  return div.innerHTML;  // Entités HTML encodées, jamais d'injection possible
+}
+----
+
+Aucun appel `innerHTML` direct sur des données non filtrées.
+
+=== Clé `anon` Supabase
+
+La clé `anon` est publique par conception.
+Elle ne donne accès qu'aux opérations autorisées par les politiques RLS.
+Les opérations sensibles (clôture, désabonnement) passent par des RPC `SECURITY DEFINER` qui vérifient les tokens avant d'agir.
+
+=== Webhook Edge Function
+
+L'Edge Function vérifie un en-tête `Authorization: Bearer <WEBHOOK_SECRET>` à chaque appel.
+Le secret est stocké dans les variables d'environnement Supabase (jamais dans le code source).
+
+'''
+
+[.text-right]
+_Généré avec AsciiDoctor — Projet Partage d'essaims 🐝_ +
+link:documentation.html[→ Documentation technique complète]

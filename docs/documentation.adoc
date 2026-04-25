@@ -20,6 +20,8 @@ Projet Abeilles
 Plateforme de partage d'essaims d'abeilles entre particuliers et apiculteurs.
 Site statique hébergé sur GitHub Pages, backend Supabase (PostgreSQL + Edge Functions).
 
+Voir aussi : link:architecture.html[Architecture globale →]
+
 '''
 
 == Introduction
