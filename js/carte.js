@@ -94,15 +94,30 @@ function ajouterMarqueur(essaim, ageHeures) {
         href="mailto:${encodeURIComponent(essaim.email)}?subject=${encodeURIComponent('Essaim à ' + essaim.commune)}&body=${encodeURIComponent('Bonjour ' + essaim.prenom + ',\n\nJ\'ai vu votre annonce sur la plateforme de partage d\'essaims et je suis intéressé(e).\n\nCordialement')}">
         ✉️ Je suis intéressé(e)
       </a>
+      <div class="popup-gestion">
+        <p class="popup-gestion-titre">C'est votre essaim ?</p>
+        <div class="popup-gestion-boutons">
+          <button class="popup-btn-gestion popup-btn-parti"
+                  onclick="marquerEssaimDepuisCarte('${essaim.token}', 'parti', this)">
+            🍃 Parti
+          </button>
+          <button class="popup-btn-gestion popup-btn-recupere"
+                  onclick="marquerEssaimDepuisCarte('${essaim.token}', 'recupere', this)">
+            ✅ Récupéré
+          </button>
+        </div>
+        <div id="popup-msg" class="popup-gestion-msg"></div>
+      </div>
     </div>`;
 
-  marqueur.bindPopup(contenuPopup);
+  marqueur.bindPopup(contenuPopup, { maxWidth: 300 });
   marqueur.addTo(carteLeaflet);
 
   tousLesMarqueurs.push({
     marqueur,
     departement: (essaim.departement || '').toLowerCase().trim(),
     commune:     (essaim.commune     || '').toLowerCase().trim(),
+    token:       essaim.token,
   });
 }
 
@@ -176,6 +191,57 @@ function zoomSurDepartement(valeur) {
       console.warn('Geocoding département échoué :', err);
     }
   }, 600);
+}
+
+// Marque un essaim depuis le popup de la carte (parti ou récupéré)
+async function marquerEssaimDepuisCarte(token, statut, btnClique) {
+  const popup = btnClique.closest('.popup-essaim');
+  const msg   = popup?.querySelector('#popup-msg');
+  const btns  = popup?.querySelectorAll('.popup-btn-gestion');
+
+  btns?.forEach(b => { b.disabled = true; });
+  btnClique.textContent = '⌛…';
+
+  try {
+    const { data, error } = await supabaseClient
+      .rpc('gerer_essaim', { p_token: token, p_statut: statut });
+
+    if (error) throw error;
+
+    if (data === 'not_found') {
+      if (msg) msg.textContent = 'Cette annonce est déjà clôturée.';
+      return;
+    }
+
+    const libelle = statut === 'recupere' ? 'récupéré ✅' : 'parti 🍃';
+    if (msg) {
+      msg.textContent = `Essaim marqué comme ${libelle}. Merci !`;
+      msg.className = 'popup-gestion-msg popup-gestion-msg--ok';
+    }
+
+    // Ferme le popup et retire le marqueur de la carte après un court délai
+    setTimeout(() => {
+      carteLeaflet.closePopup();
+      supprimerMarqueurParToken(token);
+    }, 1200);
+
+  } catch (err) {
+    console.error('Erreur marquage :', err);
+    if (msg) {
+      msg.textContent = 'Erreur — réessayez.';
+      msg.className = 'popup-gestion-msg popup-gestion-msg--erreur';
+    }
+    btns?.forEach(b => { b.disabled = false; });
+    btnClique.textContent = btnClique.dataset.label || btnClique.textContent;
+  }
+}
+
+// Retire un marqueur de la carte et du tableau interne par son token
+function supprimerMarqueurParToken(token) {
+  const idx = tousLesMarqueurs.findIndex(m => m.token === token);
+  if (idx === -1) return;
+  tousLesMarqueurs[idx].marqueur.remove();
+  tousLesMarqueurs.splice(idx, 1);
 }
 
 // Échappe le HTML pour éviter les injections XSS dans les popups

@@ -66,7 +66,7 @@ async function chargerEssaims() {
   try {
     const { data: essaims, error } = await supabaseClient
       .from('essaims')
-      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, email, created_at')
+      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, email, created_at, token')
       .eq('disponible', true)
       .order('created_at', { ascending: false });
 
