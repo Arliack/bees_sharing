@@ -102,6 +102,7 @@ function ajouterMarqueur(essaim, ageHeures) {
   tousLesMarqueurs.push({
     marqueur,
     departement: (essaim.departement || '').toLowerCase().trim(),
+    commune:     (essaim.commune     || '').toLowerCase().trim(),
   });
 }
 
@@ -129,13 +130,16 @@ function tempsRelatif(ageHeures) {
   return `il y a ${jours} jour${jours > 1 ? 's' : ''}`;
 }
 
-// Filtrage des marqueurs par département
-function filtrerParDepartement(valeur) {
-  const filtre = valeur.toLowerCase().trim();
+// Filtrage des marqueurs par département et/ou ville
+function filtrerMarqueurs(dept, ville) {
+  const filtreDept  = (dept  || '').toLowerCase().trim();
+  const filtreVille = (ville || '').toLowerCase().trim();
   let visibles = 0;
 
-  tousLesMarqueurs.forEach(({ marqueur, departement }) => {
-    if (!filtre || departement.includes(filtre)) {
+  tousLesMarqueurs.forEach(({ marqueur, departement, commune }) => {
+    const okDept  = !filtreDept  || departement.includes(filtreDept);
+    const okVille = !filtreVille || commune.includes(filtreVille);
+    if (okDept && okVille) {
       marqueur.addTo(carteLeaflet);
       visibles++;
     } else {

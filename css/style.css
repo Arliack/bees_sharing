@@ -177,6 +177,82 @@ header h1 .emoji { font-size: 1.5rem; }
   text-decoration: underline;
 }
 
+/* ── Select département dans la barre de filtre ── */
+#filtre-dept {
+  border: 1.5px solid var(--bois-clair);
+  border-radius: 1rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.88rem;
+  background: var(--blanc);
+  color: var(--texte);
+  outline: none;
+  cursor: pointer;
+  max-width: 200px;
+  transition: border-color 0.2s;
+}
+#filtre-dept:focus { border-color: var(--miel); }
+
+#filtre-ville {
+  border: 1.5px solid var(--bois-clair);
+  border-radius: 1rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.9rem;
+  background: var(--blanc);
+  color: var(--texte);
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 110px;
+}
+#filtre-ville:focus { border-color: var(--miel); }
+
+/* ── Autocomplete communes (formulaire) ── */
+.autocomplete-wrapper { position: relative; }
+
+.autocomplete-liste {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--blanc);
+  border: 1.5px solid var(--miel);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 230px;
+  overflow-y: auto;
+  z-index: 2000;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.autocomplete-liste[hidden] { display: none; }
+
+.autocomplete-liste li {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f0e8d0;
+  color: var(--texte);
+  line-height: 1.4;
+}
+.autocomplete-liste li:last-child { border-bottom: none; }
+.autocomplete-liste li:hover { background: var(--miel-pale); }
+
+/* Select abonnement dans le panneau */
+#abonne-dept {
+  border: 1.5px solid #c8a850;
+  border-radius: 1.5rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  background: var(--blanc);
+  color: var(--texte);
+  outline: none;
+  flex: 1;
+  min-width: 160px;
+  transition: border-color 0.2s;
+}
+#abonne-dept:focus { border-color: var(--miel); }
+
 /* ── Zone carte (index) ── */
 #zone-carte {
   display: flex;

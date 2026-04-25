@@ -75,15 +75,19 @@
         <div class="deux-colonnes">
           <div class="champ">
             <label for="commune">Commune <span class="requis">*</span></label>
-            <input type="text" id="commune" name="commune"
-              placeholder="Saint-Émilion" required />
+            <div class="autocomplete-wrapper">
+              <input type="text" id="commune" name="commune"
+                placeholder="Tapez une ville…" autocomplete="off" required />
+              <ul id="commune-suggestions" class="autocomplete-liste" hidden role="listbox"></ul>
+            </div>
             <span class="msg-erreur">Commune requise</span>
           </div>
 
           <div class="champ">
             <label for="departement">Département <span class="requis">*</span></label>
             <input type="text" id="departement" name="departement"
-              placeholder="Gironde" required />
+              placeholder="Auto-rempli via la commune"
+              readonly style="background:var(--fond);color:var(--gris);cursor:default;" required />
             <span class="msg-erreur">Département requis</span>
           </div>
         </div>
@@ -105,11 +109,6 @@
       <!-- Bloc : Détails de l'essaim -->
       <div class="carte-form">
         <h3>🍯 Détails de l'essaim</h3>
-
-        <div class="champ">
-          <label for="date-dispo">Date de disponibilité</label>
-          <input type="date" id="date-dispo" name="date-dispo" />
-        </div>
 
         <div class="champ">
           <label for="description">Description <span class="optionnel">(facultatif)</span></label>

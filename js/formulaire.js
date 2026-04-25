@@ -15,13 +15,11 @@ function initialiserCarteFormulaire() {
     maxZoom: 19,
   }).addTo(carteFormulaire);
 
-  // Clic sur la carte pour placer le marqueur
   carteFormulaire.on('click', (e) => {
     placerMarqueurSurCarte(e.latlng.lat, e.latlng.lng);
   });
 }
 
-// Place (ou déplace) le marqueur sur la mini-carte
 function placerMarqueurSurCarte(lat, lng, zoom) {
   const latlng = L.latLng(lat, lng);
   latChoisie = parseFloat(lat.toFixed(6));
@@ -38,7 +36,7 @@ function placerMarqueurSurCarte(lat, lng, zoom) {
     });
   }
 
-  carteFormulaire.setView(latlng, zoom || Math.max(carteFormulaire.getZoom(), 14));
+  carteFormulaire.setView(latlng, zoom || Math.max(carteFormulaire.getZoom(), 13));
   mettreAJourAffichageCoords();
   document.getElementById('champ-carte').classList.remove('invalide');
 }
@@ -48,6 +46,82 @@ function mettreAJourAffichageCoords() {
   if (el && latChoisie !== null) {
     el.textContent = `Position sélectionnée : ${latChoisie}, ${lngChoisie} — vous pouvez déplacer le marqueur pour affiner.`;
   }
+}
+
+// ── Autocomplete communes (API Géo officielle, sans clé) ──────────────────────
+
+let _timerCommune = null;
+
+function rechercherCommunes(valeur) {
+  clearTimeout(_timerCommune);
+  const liste = document.getElementById('commune-suggestions');
+
+  if (valeur.trim().length < 2) {
+    fermerSuggestions();
+    return;
+  }
+
+  _timerCommune = setTimeout(async () => {
+    try {
+      const res = await fetch(
+        `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(valeur)}&fields=nom,departement,centre&limit=8&format=json&type=commune-actuelle`
+      );
+      const communes = await res.json();
+
+      liste.innerHTML = '';
+
+      if (!communes.length) {
+        fermerSuggestions();
+        return;
+      }
+
+      communes.forEach((c, i) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.setAttribute('id', `suggestion-${i}`);
+        li.textContent = `${c.nom} (${c.departement.code} — ${c.departement.nom})`;
+        li.addEventListener('mousedown', (e) => {
+          // mousedown pour éviter que le blur de l'input ferme la liste avant le clic
+          e.preventDefault();
+          selectionnerCommune(c);
+        });
+        liste.appendChild(li);
+      });
+
+      liste.hidden = false;
+
+    } catch (err) {
+      console.warn('Erreur autocomplete communes :', err);
+      fermerSuggestions();
+    }
+  }, 280);
+}
+
+function selectionnerCommune(commune) {
+  document.getElementById('commune').value = commune.nom;
+  document.getElementById('departement').value = commune.departement.nom;
+
+  fermerSuggestions();
+
+  // Place le marqueur aux coordonnées du centre de la commune (GeoJSON : [lng, lat])
+  if (commune.centre?.coordinates) {
+    const [lng, lat] = commune.centre.coordinates;
+    placerMarqueurSurCarte(lat, lng, 14);
+  }
+
+  // Retire les marques d'erreur
+  ['commune', 'departement'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.closest('.champ')?.classList.remove('invalide');
+      el.classList.remove('erreur');
+    }
+  });
+}
+
+function fermerSuggestions() {
+  const liste = document.getElementById('commune-suggestions');
+  if (liste) { liste.innerHTML = ''; liste.hidden = true; }
 }
 
 // ── Géolocalisation GPS ───────────────────────────────────────────────────────
@@ -71,53 +145,11 @@ function utiliserMaPosition() {
     (err) => {
       btn.textContent = '📍 Ma position';
       btn.disabled = false;
-      const msgs = {
-        1: "Vous avez refusé l'accès à la localisation.",
-        2: "Position indisponible pour le moment.",
-        3: "La demande de localisation a expiré.",
-      };
+      const msgs = { 1: "Accès à la localisation refusé.", 2: "Position indisponible.", 3: "Délai expiré." };
       alert(msgs[err.code] || "Impossible d'obtenir votre position.");
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
-}
-
-// ── Centrage automatique depuis commune + département ─────────────────────────
-
-let _timerGeocode = null;
-
-function geocoderCommune() {
-  clearTimeout(_timerGeocode);
-
-  const commune = document.getElementById('commune').value.trim();
-  const dept    = document.getElementById('departement').value.trim();
-
-  // Attend au moins la commune pour lancer la recherche
-  if (commune.length < 2) return;
-
-  _timerGeocode = setTimeout(async () => {
-    try {
-      const requete = commune + (dept ? ', ' + dept : '') + ', France';
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(requete)}&format=json&limit=1&countrycodes=fr`
-      );
-      const data = await res.json();
-      if (data.length === 0) return;
-
-      const lat = parseFloat(data[0].lat);
-      const lon = parseFloat(data[0].lon);
-
-      // Centre la carte sans placer le marqueur — la personne clique pour confirmer
-      carteFormulaire.setView([lat, lon], 14);
-
-      const el = document.getElementById('coords-affichage');
-      if (el && latChoisie === null) {
-        el.textContent = `Carte centrée sur ${commune}. Cliquez pour placer l'essaim précisément.`;
-      }
-    } catch (err) {
-      console.warn('Geocoding commune échoué :', err);
-    }
-  }, 800);
 }
 
 // ── Validation ───────────────────────────────────────────────────────────────
@@ -182,7 +214,8 @@ async function soumettreFormulaire(e) {
     commune:     document.getElementById('commune').value.trim(),
     departement: document.getElementById('departement').value.trim(),
     description: document.getElementById('description').value.trim() || null,
-    date_dispo:  document.getElementById('date-dispo').value || null,
+    // La date est automatiquement celle d'aujourd'hui
+    date_dispo:  new Date().toISOString().split('T')[0],
     latitude:    latChoisie,
     longitude:   lngChoisie,
     disponible:  true,
@@ -205,7 +238,7 @@ async function soumettreFormulaire(e) {
   }
 }
 
-// ── Initialisation au chargement de la page ──────────────────────────────────
+// ── Initialisation ────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   initialiserCarteFormulaire();
@@ -213,12 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('formulaire');
   if (form) form.addEventListener('submit', soumettreFormulaire);
 
-  // Centrage auto quand commune ou département changent
-  document.getElementById('commune').addEventListener('input', geocoderCommune);
-  document.getElementById('departement').addEventListener('input', geocoderCommune);
+  // Autocomplete sur le champ commune
+  const champCommune = document.getElementById('commune');
+  if (champCommune) {
+    champCommune.addEventListener('input', (e) => rechercherCommunes(e.target.value));
+    champCommune.addEventListener('blur', () => setTimeout(fermerSuggestions, 150));
+    champCommune.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') fermerSuggestions();
+    });
+  }
 
   // Retire les erreurs de validation en temps réel
-  document.querySelectorAll('input, textarea, select').forEach(input => {
+  document.querySelectorAll('input:not([readonly]), textarea, select').forEach(input => {
     input.addEventListener('input', () => {
       const conteneur = input.closest('.champ');
       if (conteneur) {

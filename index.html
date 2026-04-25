@@ -21,12 +21,18 @@
     <!-- Barre de filtre -->
     <div id="barre-filtre">
       <label for="filtre-dept">Département :</label>
+      <select id="filtre-dept" aria-label="Filtrer par département">
+        <option value="">Tous</option>
+      </select>
+
+      <label for="filtre-ville">Ville :</label>
       <input
         type="text"
-        id="filtre-dept"
-        placeholder="ex : Gironde, 33, Loire…"
-        aria-label="Filtrer par département"
+        id="filtre-ville"
+        placeholder="ex : Bordeaux…"
+        aria-label="Filtrer par ville"
       />
+
       <button
         id="btn-alerte"
         class="btn-alerte"
@@ -52,13 +58,9 @@
           required
           aria-label="Votre adresse email"
         />
-        <input
-          type="text"
-          id="abonne-dept"
-          placeholder="Département (ex : Gironde)"
-          required
-          aria-label="Département à surveiller"
-        />
+        <select id="abonne-dept" required aria-label="Département à surveiller">
+          <option value="">Choisir un département…</option>
+        </select>
         <button type="submit" id="btn-form-abonnement">M'alerter</button>
       </form>
       <div id="abonne-message" role="status" aria-live="polite"></div>
