@@ -68,6 +68,115 @@ header h1 .emoji { font-size: 1.5rem; }
 }
 .btn-header:hover { background: var(--miel-clair); color: var(--bois); }
 
+/* ── Bouton alerte ── */
+.btn-alerte {
+  background: transparent;
+  color: var(--bois);
+  border: 1.5px solid var(--bois-clair);
+  border-radius: 2rem;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.btn-alerte:hover,
+.btn-alerte[aria-expanded="true"] {
+  background: var(--bois);
+  color: var(--blanc);
+}
+
+/* ── Panneau abonnement (slide-down sous la barre de filtre) ── */
+.panneau-abonnement {
+  background: var(--miel-pale);
+  border-bottom: 1px solid #ddc880;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.panneau-abonnement[hidden] { display: none; }
+
+.abonne-intro {
+  width: 100%;
+  font-size: 0.875rem;
+  color: var(--bois);
+  margin-bottom: 0.1rem;
+}
+
+.abonne-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.abonne-form input {
+  border: 1.5px solid #c8a850;
+  border-radius: 1.5rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  background: var(--blanc);
+  color: var(--texte);
+  outline: none;
+  min-width: 160px;
+  flex: 1;
+  transition: border-color 0.2s;
+}
+.abonne-form input:focus { border-color: var(--miel); }
+
+.abonne-form button[type="submit"] {
+  background: var(--bois);
+  color: var(--blanc);
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.abonne-form button[type="submit"]:hover:not(:disabled) { background: var(--bois-clair); }
+.abonne-form button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.abonne-msg {
+  font-size: 0.85rem;
+  width: 100%;
+  padding: 0.3rem 0;
+}
+.abonne-msg--ok    { color: var(--vert); }
+.abonne-msg--erreur { color: #c0392b; }
+
+/* ── Page désabonnement ── */
+.page-desabo {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+.desabo-chargement { color: var(--gris); font-style: italic; }
+.desabo-carte {
+  background: var(--blanc);
+  border: 1px solid #e0d0a0;
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 16px var(--ombre);
+}
+.desabo-ico { font-size: 3rem; margin-bottom: 0.5rem; }
+.desabo-carte h2 { color: var(--bois); margin-bottom: 0.75rem; }
+.desabo-carte p  { color: var(--texte); font-size: 0.95rem; }
+.desabo-retour {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: var(--bois);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 /* ── Zone carte (index) ── */
 #zone-carte {
   display: flex;

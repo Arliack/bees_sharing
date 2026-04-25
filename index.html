@@ -27,7 +27,41 @@
         placeholder="ex : Gironde, 33, Loire…"
         aria-label="Filtrer par département"
       />
+      <button
+        id="btn-alerte"
+        class="btn-alerte"
+        type="button"
+        aria-expanded="false"
+        aria-controls="panneau-abonnement"
+        onclick="basculerPanneauAbonnement()"
+      >🔔 M'alerter</button>
       <span id="compteur">Chargement…</span>
+    </div>
+
+    <!-- Panneau d'abonnement (masqué par défaut) -->
+    <div id="panneau-abonnement" class="panneau-abonnement" hidden>
+      <p class="abonne-intro">
+        Recevez un email dès qu'un essaim est signalé dans votre département.
+      </p>
+      <form id="form-abonnement" class="abonne-form" novalidate>
+        <input
+          type="email"
+          id="abonne-email"
+          placeholder="votre@email.fr"
+          autocomplete="email"
+          required
+          aria-label="Votre adresse email"
+        />
+        <input
+          type="text"
+          id="abonne-dept"
+          placeholder="Département (ex : Gironde)"
+          required
+          aria-label="Département à surveiller"
+        />
+        <button type="submit" id="btn-form-abonnement">M'alerter</button>
+      </form>
+      <div id="abonne-message" role="status" aria-live="polite"></div>
     </div>
 
     <!-- Carte Leaflet -->
@@ -48,6 +82,7 @@
   <script src="js/config.js"></script>
   <script src="js/carte.js"></script>
   <script src="js/annonces.js"></script>
+  <script src="js/abonnements.js"></script>
 
   <script>
     // Point d'entrée : initialise la carte puis charge les annonces
