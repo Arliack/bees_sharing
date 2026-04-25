@@ -87,6 +87,34 @@ function filtrerParDepartement(valeur) {
   return visibles;
 }
 
+// Zoom sur un département via Nominatim (geocoding OpenStreetMap)
+let _timerZoomDept = null;
+
+function zoomSurDepartement(valeur) {
+  clearTimeout(_timerZoomDept);
+
+  if (!valeur || valeur.trim().length < 2) {
+    carteLeaflet.setView([46.5, 2.5], 6);
+    return;
+  }
+
+  _timerZoomDept = setTimeout(async () => {
+    try {
+      const q = encodeURIComponent(valeur.trim() + ', France');
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=fr`
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        const bb = data[0].boundingbox; // [south, north, west, east]
+        carteLeaflet.fitBounds([[+bb[0], +bb[2]], [+bb[1], +bb[3]]], { padding: [30, 30] });
+      }
+    } catch (err) {
+      console.warn('Geocoding département échoué :', err);
+    }
+  }, 600);
+}
+
 // Échappe le HTML pour éviter les injections XSS dans les popups
 function escapeHtml(texte) {
   const div = document.createElement('div');

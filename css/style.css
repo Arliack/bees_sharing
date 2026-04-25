@@ -265,6 +265,25 @@ header h1 .emoji { font-size: 1.5rem; }
   gap: 1rem;
 }
 
+/* Bouton géolocalisation GPS */
+.btn-geoloc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--vert);
+  color: var(--blanc);
+  border: none;
+  border-radius: 2rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+  transition: background 0.2s;
+}
+.btn-geoloc:hover:not(:disabled) { background: var(--vert-clair); }
+.btn-geoloc:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* Carte mini pour localisation */
 #carte-form {
   width: 100%;

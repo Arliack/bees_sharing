@@ -43,6 +43,7 @@ function activerFiltre(totalInitial) {
 
   input.addEventListener('input', () => {
     const nb = filtrerParDepartement(input.value);
+    zoomSurDepartement(input.value);
     if (compteur) {
       compteur.textContent = input.value.trim()
         ? `${nb} essaim${nb > 1 ? 's' : ''} dans ce département`

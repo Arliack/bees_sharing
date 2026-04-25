@@ -91,9 +91,12 @@
         <!-- Mini-carte cliquable -->
         <div class="champ" id="champ-carte">
           <label>Position précise <span class="requis">*</span></label>
+          <button type="button" id="btn-geoloc" class="btn-geoloc" onclick="utiliserMaPosition()">
+            📍 Ma position
+          </button>
           <div id="carte-form" role="application" aria-label="Cliquez sur la carte pour placer l'essaim"></div>
           <p class="info-coords" id="coords-affichage">
-            Cliquez sur la carte pour indiquer l'emplacement exact de l'essaim. Vous pouvez ensuite déplacer le marqueur.
+            Utilisez "Ma position" ou cliquez sur la carte pour indiquer l'emplacement de l'essaim.
           </p>
           <span class="msg-erreur">Veuillez cliquer sur la carte pour placer l'essaim</span>
         </div>
