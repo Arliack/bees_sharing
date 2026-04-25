@@ -253,6 +253,106 @@ header h1 .emoji { font-size: 1.5rem; }
 }
 #abonne-dept:focus { border-color: var(--miel); }
 
+/* ── Page gestion essaim (gerer.html) ── */
+.gestion-carte {
+  background: var(--blanc);
+  border: 1px solid #e0d0a0;
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px var(--ombre);
+}
+.gestion-entete {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.gestion-emoji { font-size: 2.5rem; line-height: 1; }
+.gestion-entete h2 { color: var(--bois); font-size: 1.3rem; margin-bottom: 0.2rem; }
+.gestion-dept { font-size: 1rem; font-weight: 400; color: var(--gris); }
+.gestion-meta { color: var(--gris); font-size: 0.85rem; }
+.gestion-desc {
+  font-style: italic;
+  color: var(--texte);
+  background: var(--miel-pale);
+  border-left: 3px solid var(--miel);
+  padding: 0.6rem 0.85rem;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+.gestion-question {
+  font-weight: 600;
+  color: var(--bois);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.gestion-boutons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.btn-statut {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  text-align: left;
+}
+.btn-statut:hover:not(:disabled) { opacity: 0.88; transform: scale(1.01); }
+.btn-statut:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-parti    { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
+.btn-recupere { background: #e3f2fd; color: #1565c0; border: 2px solid #90caf9; }
+.gestion-msg {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.gestion-msg--ok    { background: #eaf6e4; color: var(--vert); border: 1px solid #a5d6a7; }
+.gestion-msg--info  { background: var(--miel-pale); color: var(--bois); border: 1px solid #e8a020; }
+.gestion-msg--erreur { background: #fde8e8; color: #c0392b; border: 1px solid #f5c6c6; }
+
+/* Bloc lien gestion dans la confirmation (deposer.html) */
+.gestion-alerte {
+  background: #fff8e1;
+  border: 1.5px solid #f0c040;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+.gestion-alerte p { font-size: 0.9rem; color: var(--texte); margin-bottom: 0.6rem; }
+.lien-gestion-url {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--bois);
+  word-break: break-all;
+  background: var(--fond);
+  border: 1px solid #d0c090;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.6rem;
+  text-decoration: none;
+}
+.btn-copier {
+  background: var(--bois);
+  color: var(--blanc);
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-copier:hover { background: var(--bois-clair); }
+
 /* ── Zone carte (index) ── */
 #zone-carte {
   display: flex;

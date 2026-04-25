@@ -222,8 +222,19 @@ async function soumettreFormulaire(e) {
   };
 
   try {
-    const { error } = await supabaseClient.from('essaims').insert([donnees]);
+    // .select('token') récupère le token généré automatiquement par Supabase
+    const { data, error } = await supabaseClient
+      .from('essaims')
+      .insert([donnees])
+      .select('token')
+      .single();
+
     if (error) throw error;
+
+    // Construit le lien de gestion à partir de l'URL courante
+    const base = window.location.href.replace(/deposer\.html.*$/, '');
+    const lienGestion = `${base}gerer.html?token=${data.token}`;
+    afficherConfirmation(lienGestion);
 
     document.getElementById('formulaire').style.display = 'none';
     document.getElementById('confirmation').style.display = 'block';
@@ -236,6 +247,25 @@ async function soumettreFormulaire(e) {
     btn.disabled = false;
     btn.textContent = 'Signaler cet essaim';
   }
+}
+
+// Injecte le lien de gestion dans la page de confirmation
+function afficherConfirmation(lienGestion) {
+  const zone = document.getElementById('lien-gestion');
+  if (!zone) return;
+  zone.innerHTML = `
+    <div class="gestion-alerte">
+      <p>🔑 <strong>Sauvegardez ce lien</strong> — il vous permettra de marquer votre essaim comme parti ou récupéré :</p>
+      <a href="${lienGestion}" class="lien-gestion-url" target="_blank">${lienGestion}</a>
+      <button type="button" class="btn-copier" onclick="copierLien('${lienGestion}', this)">Copier</button>
+    </div>`;
+}
+
+function copierLien(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = '✅ Copié !';
+    setTimeout(() => { btn.textContent = 'Copier'; }, 2000);
+  });
 }
 
 // ── Initialisation ────────────────────────────────────────────────────────────
