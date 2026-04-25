@@ -5,7 +5,13 @@
       "Bash(git remote *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(ruby --version)",
+      "Bash(gem list *)",
+      "Bash(gem install *)",
+      "Bash(ruby -e 'puts Gem.user_dir')",
+      "Bash(asciidoctor --version)",
+      "Bash(asciidoctor --backend html5 --attribute 'toc-title=Table des matières' --attribute lang=fr --attribute docinfo=shared --out-file /Users/ros/Documents/Abeilles/site_Partage/docs/documentation.html /Users/ros/Documents/Abeilles/site_Partage/docs/documentation.adoc)"
     ]
   }
 }

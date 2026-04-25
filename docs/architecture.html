@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture — Partage d'essaims 🐝</title>
+  <style>
+    :root {
+      --miel:     #e8a020;
+      --bois:     #7a4e2d;
+      --vert:     #5a7a3a;
+      --fond:     #faf7f0;
+      --blanc:    #ffffff;
+      --gris:     #888;
+      --bleu:     #1565c0;
+      --rouge:    #c0392b;
+      --violet:   #6b21a8;
+      --texte:    #2c2010;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── En-tête ── */
+    header {
+      background: var(--bois);
+      color: var(--blanc);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 1.3rem; font-weight: 700; }
+    header a {
+      color: var(--miel);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    header a:hover { text-decoration: underline; }
+
+    /* ── Corps ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      color: var(--bois);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #e8d8b0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2:first-of-type { margin-top: 0; }
+
+    p { color: var(--texte); margin-bottom: 0.75rem; font-size: 0.95rem; }
+
+    /* ── Diagramme principal ── */
+    .diagramme {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr 80px 1fr;
+      grid-template-rows: auto auto;
+      gap: 1rem 0;
+      align-items: start;
+      margin: 1.5rem 0 2.5rem;
+    }
+
+    /* Colonnes */
+    .col-navigateur { grid-column: 1; }
+    .col-fleche-1   { grid-column: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .col-supabase   { grid-column: 3; }
+    .col-fleche-2   { grid-column: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .col-externes   { grid-column: 5; }
+
+    .layer-title {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gris);
+      margin-bottom: 0.6rem;
+    }
+
+    /* Boîtes */
+    .boite {
+      background: var(--blanc);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 0.75rem;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .boite-titre {
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+    .boite-contenu {
+      font-size: 0.78rem;
+      color: var(--gris);
+      line-height: 1.7;
+    }
+    .boite-contenu code {
+      background: #f0e8d0;
+      border-radius: 3px;
+      padding: 0 4px;
+      font-size: 0.75rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--bois);
+    }
+
+    /* Couleurs par couche */
+    .boite-html    { border-color: var(--miel); }
+    .boite-js      { border-color: #f0c040; }
+    .boite-lib     { border-color: #80b060; }
+    .boite-db      { border-color: var(--bleu); }
+    .boite-fn      { border-color: var(--violet); }
+    .boite-rls     { border-color: #0891b2; }
+    .boite-api-geo { border-color: var(--vert); }
+    .boite-api-map { border-color: #ea580c; }
+    .boite-api-mail{ border-color: var(--rouge); }
+
+    /* Flèches */
+    .fleche-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding-top: 2rem;
+    }
+    .fleche-label {
+      font-size: 0.65rem;
+      color: var(--gris);
+      text-align: center;
+      max-width: 70px;
+      line-height: 1.3;
+    }
+    .fleche-ligne {
+      width: 2px;
+      height: 24px;
+      background: #c8b888;
+    }
+    .fleche-tete {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 9px solid #c8b888;
+    }
+    .fleche-double .fleche-tete-haut {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 9px solid #c8b888;
+    }
+
+    /* ── Flux de données ── */
+    .flux-liste {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+    .flux-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      background: var(--blanc);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      font-size: 0.88rem;
+    }
+    .flux-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--miel);
+      color: var(--bois);
+      font-weight: 800;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .flux-texte { line-height: 1.5; }
+    .flux-texte strong { color: var(--bois); }
+    .flux-texte code {
+      background: #f0e8d0;
+      border-radius: 3px;
+      padding: 0 4px;
+      font-size: 0.78rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--bois);
+    }
+
+    /* ── Stack technique ── */
+    .stack-grille {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .stack-carte {
+      background: var(--blanc);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      border-left: 4px solid var(--miel);
+    }
+    .stack-carte h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--bois);
+      margin-bottom: 0.4rem;
+    }
+    .stack-carte p {
+      font-size: 0.78rem;
+      color: var(--gris);
+      margin: 0;
+    }
+    .stack-carte.s-vert  { border-left-color: var(--vert); }
+    .stack-carte.s-bleu  { border-left-color: var(--bleu); }
+    .stack-carte.s-rouge { border-left-color: var(--rouge); }
+    .stack-carte.s-violet{ border-left-color: var(--violet); }
+
+    /* ── Schéma BDD ── */
+    .bdd-grille {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .table-bdd {
+      background: var(--blanc);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+    .table-bdd-header {
+      background: var(--bois);
+      color: var(--blanc);
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .table-bdd table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .table-bdd th {
+      background: #f5f0e4;
+      color: var(--gris);
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid #e8dfc8;
+    }
+    .table-bdd td {
+      padding: 0.35rem 0.8rem;
+      border-bottom: 1px solid #f0ebe0;
+      vertical-align: top;
+    }
+    .table-bdd tr:last-child td { border-bottom: none; }
+    .type { color: var(--bleu); font-family: 'SF Mono', 'Fira Code', monospace; }
+    .pk { color: var(--rouge); font-weight: 700; }
+    .fk { color: var(--violet); }
+
+    /* ── Légende ── */
+    .legende {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .legende-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--gris);
+    }
+    .legende-couleur {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .diagramme {
+        grid-template-columns: 1fr;
+      }
+      .col-fleche-1, .col-fleche-2 {
+        display: none;
+      }
+      .col-supabase, .col-externes { grid-column: 1; }
+      .bdd-grille { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🐝 Partage d'essaims — Architecture globale</h1>
+  <div style="display:flex;gap:1.5rem;align-items:center;">
+    <a href="docs/documentation.html">📄 Documentation</a>
+    <a href="index.html">← Retour à la carte</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── Introduction ── -->
+  <h2>📋 Vue d'ensemble</h2>
+  <p>
+    L'application est entièrement <strong>statique</strong> (hébergée sur GitHub Pages). Il n'y a pas de serveur applicatif :
+    le navigateur communique directement avec <strong>Supabase</strong> via son SDK JavaScript. Les seuls traitements
+    serveur sont les <strong>Edge Functions Deno</strong> de Supabase, déclenchées par webhooks pour l'envoi d'emails.
+  </p>
+
+  <!-- ── Diagramme ── -->
+  <h2>🗺️ Diagramme d'architecture</h2>
+
+  <div class="legende">
+    <div class="legende-item"><div class="legende-couleur" style="background:var(--miel)"></div> Pages HTML</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:#f0c040"></div> Modules JS</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:#80b060"></div> Bibliothèques</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:var(--bleu)"></div> Base de données</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:var(--violet)"></div> Edge Functions</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:var(--vert)"></div> APIs géo</div>
+    <div class="legende-item"><div class="legende-couleur" style="background:var(--rouge)"></div> API email</div>
+  </div>
+
+  <div class="diagramme">
+
+    <!-- Colonne 1 : Navigateur -->
+    <div class="col-navigateur">
+      <div class="layer-title">🌐 Navigateur (GitHub Pages)</div>
+
+      <div class="boite boite-html">
+        <div class="boite-titre">📄 Pages HTML</div>
+        <div class="boite-contenu">
+          <code>index.html</code> — Carte + filtres<br>
+          <code>deposer.html</code> — Formulaire 3 étapes<br>
+          <code>gerer.html</code> — Gestion par token<br>
+          <code>desabonner.html</code> — Désabonnement
+        </div>
+      </div>
+
+      <div class="boite boite-js">
+        <div class="boite-titre">⚙️ Modules JavaScript</div>
+        <div class="boite-contenu">
+          <code>config.js</code> — Credentials Supabase<br>
+          <code>carte.js</code> — Leaflet, markers, bottom-sheet<br>
+          <code>annonces.js</code> — Chargement essaims + filtres<br>
+          <code>formulaire.js</code> — Saisie, GPS, multi-étapes<br>
+          <code>abonnements.js</code> — Alertes email<br>
+          <code>gestion.js</code> — Clôture par token
+        </div>
+      </div>
+
+      <div class="boite boite-lib">
+        <div class="boite-titre">📦 Bibliothèques CDN</div>
+        <div class="boite-contenu">
+          <code>Leaflet 1.9</code> — Carte interactive<br>
+          <code>supabase-js 2</code> — Client BDD<br>
+          <code>CartoDB Voyager</code> — Tuiles cartographiques<br>
+          <code>DM Sans</code> — Typographie Google Fonts
+        </div>
+      </div>
+    </div>
+
+    <!-- Flèche 1 -->
+    <div class="col-fleche-1">
+      <div class="fleche-container">
+        <div class="fleche-label">SELECT / INSERT / RPC</div>
+        <div class="fleche-tete-haut" style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #c8b888;"></div>
+        <div class="fleche-ligne"></div>
+        <div class="fleche-tete"></div>
+        <div class="fleche-label">JSON REST + Realtime</div>
+      </div>
+    </div>
+
+    <!-- Colonne 2 : Supabase -->
+    <div class="col-supabase">
+      <div class="layer-title">☁️ Supabase (Backend-as-a-Service)</div>
+
+      <div class="boite boite-db">
+        <div class="boite-titre">🗄️ PostgreSQL</div>
+        <div class="boite-contenu">
+          <code>essaims</code> — Annonces actives<br>
+          <code>abonnements</code> — Alertes email<br>
+          Tokens UUID pour gestion sans auth<br>
+          Expiration automatique (7 jours)
+        </div>
+      </div>
+
+      <div class="boite boite-rls">
+        <div class="boite-titre">🔒 Row Level Security</div>
+        <div class="boite-contenu">
+          Lecture publique filtrée (<code>disponible = true</code>)<br>
+          INSERT public sans authentification<br>
+          UPDATE/DELETE via RPC sécurisées<br>
+          Clé anon limitée en écriture directe
+        </div>
+      </div>
+
+      <div class="boite boite-fn">
+        <div class="boite-titre">⚡ RPC / Edge Functions</div>
+        <div class="boite-contenu">
+          <code>gerer_essaim(token, statut)</code> — Clôture<br>
+          <code>desabonner(token)</code> — Désabo email<br>
+          <code>notifier-abonnes</code> (Deno) — Webhook INSERT → Resend
+        </div>
+      </div>
+    </div>
+
+    <!-- Flèche 2 -->
+    <div class="col-fleche-2">
+      <div class="fleche-container" style="padding-top:3rem;">
+        <div class="fleche-label">Geocoding communes</div>
+        <div class="fleche-ligne"></div>
+        <div class="fleche-tete"></div>
+        <div style="height:1.5rem"></div>
+        <div class="fleche-label">Webhook INSERT</div>
+        <div class="fleche-ligne"></div>
+        <div class="fleche-tete"></div>
+      </div>
+    </div>
+
+    <!-- Colonne 3 : APIs externes -->
+    <div class="col-externes">
+      <div class="layer-title">🔌 Services externes</div>
+
+      <div class="boite boite-api-geo">
+        <div class="boite-titre">🗺️ geo.api.gouv.fr</div>
+        <div class="boite-contenu">
+          Autocomplete communes françaises<br>
+          Retourne coordonnées GPS + département<br>
+          Sans clé API — gratuit et officiel
+        </div>
+      </div>
+
+      <div class="boite boite-api-map">
+        <div class="boite-titre">📍 Nominatim (OSM)</div>
+        <div class="boite-contenu">
+          Geocoding inverse département<br>
+          Bounding box pour zoom automatique<br>
+          API OSM open source
+        </div>
+      </div>
+
+      <div class="boite boite-api-mail">
+        <div class="boite-titre">📧 Resend API</div>
+        <div class="boite-contenu">
+          Envoi emails transactionnels<br>
+          Déclenché par Edge Function<br>
+          Lien de désabonnement tokenisé
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Flux de données ── -->
+  <h2>🔄 Flux de données principaux</h2>
+
+  <ul class="flux-liste">
+    <li class="flux-item">
+      <div class="flux-num">1</div>
+      <div class="flux-texte">
+        <strong>Signalement d'un essaim</strong> —
+        <code>deposer.html</code> → <code>formulaire.js</code> collecte prenom/email/commune/GPS
+        → <code>supabase.from('essaims').insert()</code> → Supabase génère un token UUID
+        → lien de gestion affiché à l'utilisateur
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">2</div>
+      <div class="flux-texte">
+        <strong>Notification email aux abonnés</strong> —
+        INSERT déclenche le webhook Supabase → Edge Function <code>notifier-abonnes</code>
+        interroge la table <code>abonnements</code> par département
+        → Resend envoie un email HTML avec lien de désabonnement tokenisé
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">3</div>
+      <div class="flux-texte">
+        <strong>Affichage de la carte</strong> —
+        <code>annonces.js</code> charge les essaims disponibles depuis Supabase
+        → <code>carte.js</code> crée les marqueurs Leaflet (vert pulsant si &lt; 24h, amber sinon)
+        → stats saison alimentées en parallèle
+        → filtres département + ville appliqués côté client
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">4</div>
+      <div class="flux-texte">
+        <strong>Clic sur un marqueur</strong> —
+        Desktop : popup Leaflet natif
+        / Mobile : <code>ouvrirBottomSheet()</code> via détection <code>window.innerWidth &lt; 768</code>
+        → contenu partagé <code>construireContenuEssaim()</code>
+        → boutons « Parti » / « Récupéré » appellent <code>gerer_essaim</code> RPC
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">5</div>
+      <div class="flux-texte">
+        <strong>Clôture via lien email</strong> —
+        URL <code>gerer.html?token=UUID</code>
+        → <code>gestion.js</code> charge l'essaim par token
+        → bouton Parti/Récupéré → RPC <code>gerer_essaim(token, statut)</code>
+        → <code>disponible = false</code> en BDD, marqueur retiré de la carte
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">6</div>
+      <div class="flux-texte">
+        <strong>Désabonnement email</strong> —
+        Clic lien email → <code>desabonner.html?token=UUID</code>
+        → RPC <code>desabonner(token)</code> → suppression de la ligne dans <code>abonnements</code>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ── Schéma BDD ── -->
+  <h2>🗄️ Schéma de la base de données</h2>
+
+  <div class="bdd-grille">
+    <div class="table-bdd">
+      <div class="table-bdd-header">Table : essaims</div>
+      <table>
+        <tr><th>Colonne</th><th>Type</th><th>Note</th></tr>
+        <tr><td class="pk">id</td><td class="type">bigint</td><td>PK auto</td></tr>
+        <tr><td>token</td><td class="type">uuid</td><td>Gestion sans auth</td></tr>
+        <tr><td>prenom</td><td class="type">text</td><td></td></tr>
+        <tr><td>email</td><td class="type">text</td><td>Non exposé en DOM</td></tr>
+        <tr><td>telephone</td><td class="type">text</td><td>Nullable</td></tr>
+        <tr><td>commune</td><td class="type">text</td><td></td></tr>
+        <tr><td>departement</td><td class="type">text</td><td></td></tr>
+        <tr><td>latitude</td><td class="type">float8</td><td></td></tr>
+        <tr><td>longitude</td><td class="type">float8</td><td></td></tr>
+        <tr><td>description</td><td class="type">text</td><td>Nullable</td></tr>
+        <tr><td>date_dispo</td><td class="type">date</td><td>Date du jour auto</td></tr>
+        <tr><td>disponible</td><td class="type">boolean</td><td>true par défaut</td></tr>
+        <tr><td>statut</td><td class="type">text</td><td>disponible/parti/recupere</td></tr>
+        <tr><td>created_at</td><td class="type">timestamptz</td><td>Expiration J+7</td></tr>
+      </table>
+    </div>
+
+    <div class="table-bdd">
+      <div class="table-bdd-header">Table : abonnements</div>
+      <table>
+        <tr><th>Colonne</th><th>Type</th><th>Note</th></tr>
+        <tr><td class="pk">id</td><td class="type">bigint</td><td>PK auto</td></tr>
+        <tr><td>token</td><td class="type">uuid</td><td>Désabo sans auth</td></tr>
+        <tr><td>email</td><td class="type">text</td><td>UNIQUE (email, dept)</td></tr>
+        <tr><td>departement</td><td class="type">text</td><td>Nom complet</td></tr>
+        <tr><td>created_at</td><td class="type">timestamptz</td><td></td></tr>
+      </table>
+
+      <div class="table-bdd-header" style="margin-top:1px;background:#4a3080;">Fonctions RPC (SECURITY DEFINER)</div>
+      <table>
+        <tr><th>Fonction</th><th>Retour</th></tr>
+        <tr><td><code>gerer_essaim(p_token, p_statut)</code></td><td class="type">text</td></tr>
+        <tr><td><code>desabonner(p_token)</code></td><td class="type">void</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Stack ── -->
+  <h2>🛠️ Stack technique</h2>
+
+  <div class="stack-grille">
+    <div class="stack-carte">
+      <h4>🌐 Hébergement</h4>
+      <p>GitHub Pages — statique, CDN mondial, HTTPS automatique, gratuit</p>
+    </div>
+    <div class="stack-carte s-bleu">
+      <h4>☁️ Backend-as-a-Service</h4>
+      <p>Supabase — PostgreSQL managé, RLS, SDK JS, webhooks, Edge Functions Deno</p>
+    </div>
+    <div class="stack-carte s-vert">
+      <h4>🗺️ Cartographie</h4>
+      <p>Leaflet 1.9 + tuiles CartoDB Voyager. Markers custom CSS. Autocomplete via geo.api.gouv.fr</p>
+    </div>
+    <div class="stack-carte s-rouge">
+      <h4>📧 Emails</h4>
+      <p>Resend API appelée depuis une Edge Function Deno. Templates HTML inline.</p>
+    </div>
+    <div class="stack-carte s-violet">
+      <h4>✍️ Typographie</h4>
+      <p>DM Sans (Google Fonts) — moderne, lisible, chargé via @import CSS</p>
+    </div>
+    <div class="stack-carte">
+      <h4>⚙️ Build</h4>
+      <p>Aucun build step — HTML/CSS/JS vanilla pure. Pas de npm, bundler ou framework.</p>
+    </div>
+  </div>
+
+  <!-- ── Sécurité ── -->
+  <h2>🔒 Points de sécurité</h2>
+  <ul class="flux-liste">
+    <li class="flux-item">
+      <div class="flux-num">🔑</div>
+      <div class="flux-texte">
+        <strong>Gestion sans authentification</strong> — Les tokens UUID (128 bits) remplacent les sessions.
+        Impossible à deviner par force brute. Transmis uniquement par email.
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">🛡️</div>
+      <div class="flux-texte">
+        <strong>Email jamais exposé</strong> — L'email du déposant n'est pas retourné par l'API publique.
+        Il est utilisé uniquement dans un <code>mailto:</code> généré côté JS depuis la donnée brute.
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">🔐</div>
+      <div class="flux-texte">
+        <strong>Row Level Security</strong> — La clé <code>anon</code> Supabase ne permet que SELECT sur essaims
+        disponibles et INSERT. Toute modification passe par des RPC <code>SECURITY DEFINER</code>
+        qui vérifient le token avant d'agir.
+      </div>
+    </li>
+    <li class="flux-item">
+      <div class="flux-num">🌐</div>
+      <div class="flux-texte">
+        <strong>XSS</strong> — Tout contenu utilisateur affiché dans le DOM passe par <code>escapeHtml()</code>
+        (création d'un nœud texte via l'API DOM, jamais <code>innerHTML</code> directe sur données brutes).
+      </div>
+    </li>
+  </ul>
+
+</main>
+</body>
+</html>
