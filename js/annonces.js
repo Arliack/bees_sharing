@@ -125,7 +125,6 @@ function activerFiltres(totalInitial) {
     const ville = inputVille?.value || '';
     const nb    = filtrerMarqueurs(dept, ville);
 
-    // Zoom sur le département sélectionné, reset si aucun filtre
     if (dept) {
       zoomSurDepartement(dept);
     } else if (!ville) {
@@ -140,5 +139,67 @@ function activerFiltres(totalInitial) {
   }
 
   selectDept?.addEventListener('change', appliquerFiltres);
-  inputVille?.addEventListener('input',  appliquerFiltres);
+  // L'input déclenche le filtre texte ; l'autocomplete gère le zoom séparément
+  inputVille?.addEventListener('input', appliquerFiltres);
+
+  activerAutocompleteVille(inputVille, appliquerFiltres);
+}
+
+// ── Autocomplete ville sur la carte ──────────────────────────────────────────
+
+let _timerVille = null;
+
+function activerAutocompleteVille(inputVille, appliquerFiltres) {
+  if (!inputVille) return;
+  const liste = document.getElementById('ville-suggestions');
+
+  inputVille.addEventListener('input', (e) => {
+    clearTimeout(_timerVille);
+    const val = e.target.value.trim();
+
+    if (val.length < 2) { fermerSuggestionsVille(); return; }
+
+    _timerVille = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(val)}&fields=nom,departement,centre&limit=8&format=json&type=commune-actuelle`
+        );
+        const communes = await res.json();
+        liste.innerHTML = '';
+
+        if (!communes.length) { fermerSuggestionsVille(); return; }
+
+        communes.forEach((c) => {
+          const li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.textContent = `${c.nom} (${c.departement.code} — ${c.departement.nom})`;
+          li.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            inputVille.value = c.nom;
+            fermerSuggestionsVille();
+            appliquerFiltres();
+            // Zoom sur la ville sélectionnée
+            if (c.centre?.coordinates) {
+              const [lng, lat] = c.centre.coordinates;
+              carteLeaflet.setView([lat, lng], 13);
+            }
+          });
+          liste.appendChild(li);
+        });
+
+        liste.hidden = false;
+      } catch (err) {
+        console.warn('Autocomplete ville carte :', err);
+        fermerSuggestionsVille();
+      }
+    }, 280);
+  });
+
+  inputVille.addEventListener('blur',    () => setTimeout(fermerSuggestionsVille, 150));
+  inputVille.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerSuggestionsVille(); });
+}
+
+function fermerSuggestionsVille() {
+  const liste = document.getElementById('ville-suggestions');
+  if (liste) { liste.innerHTML = ''; liste.hidden = true; }
 }

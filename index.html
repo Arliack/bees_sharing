@@ -26,12 +26,16 @@
       </select>
 
       <label for="filtre-ville">Ville :</label>
-      <input
-        type="text"
-        id="filtre-ville"
-        placeholder="ex : Bordeaux…"
-        aria-label="Filtrer par ville"
-      />
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          id="filtre-ville"
+          placeholder="ex : Bordeaux…"
+          aria-label="Filtrer par ville"
+          autocomplete="off"
+        />
+        <ul id="ville-suggestions" class="autocomplete-liste" hidden role="listbox"></ul>
+      </div>
 
       <button
         id="btn-alerte"
