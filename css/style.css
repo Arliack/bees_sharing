@@ -1,0 +1,356 @@
+/* ── Palette naturelle ── */
+:root {
+  --miel:       #e8a020;
+  --miel-clair: #f5c842;
+  --miel-pale:  #fdf3d0;
+  --bois:       #7a4e2d;
+  --bois-clair: #b07840;
+  --vert:       #5a7a3a;
+  --vert-clair: #8ab060;
+  --fond:       #faf7f0;
+  --texte:      #2c2010;
+  --gris:       #888;
+  --blanc:      #ffffff;
+  --ombre:      rgba(0,0,0,0.15);
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--fond);
+  color: var(--texte);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+a { color: var(--bois); }
+a:hover { color: var(--miel); }
+
+/* ── Header ── */
+header {
+  background: var(--bois);
+  color: var(--blanc);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 2px 6px var(--ombre);
+  z-index: 1000;
+  position: relative;
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+header h1 .emoji { font-size: 1.5rem; }
+
+.btn-header {
+  background: var(--miel);
+  color: var(--bois);
+  border: none;
+  border-radius: 2rem;
+  padding: 0.5rem 1.1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.btn-header:hover { background: var(--miel-clair); color: var(--bois); }
+
+/* ── Zone carte (index) ── */
+#zone-carte {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+}
+
+#barre-filtre {
+  background: var(--miel-pale);
+  border-bottom: 1px solid #e0d0a0;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+#barre-filtre label { font-size: 0.9rem; font-weight: 600; color: var(--bois); }
+
+#filtre-dept {
+  border: 1.5px solid var(--bois-clair);
+  border-radius: 1rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.9rem;
+  background: var(--blanc);
+  color: var(--texte);
+  outline: none;
+  transition: border-color 0.2s;
+}
+#filtre-dept:focus { border-color: var(--miel); }
+
+#compteur {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--gris);
+  font-style: italic;
+}
+
+#carte {
+  flex: 1;
+}
+
+/* ── Bouton flottant ── */
+#btn-signaler {
+  position: fixed;
+  bottom: 2rem;
+  right: 1.5rem;
+  background: var(--miel);
+  color: var(--bois);
+  border: none;
+  border-radius: 3rem;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px var(--ombre);
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 999;
+  transition: background 0.2s, transform 0.15s;
+}
+#btn-signaler:hover { background: var(--miel-clair); transform: scale(1.04); color: var(--bois); }
+
+/* ── Popups Leaflet ── */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px var(--ombre) !important;
+}
+.leaflet-popup-content { margin: 0 !important; padding: 0 !important; }
+
+.popup-essaim {
+  min-width: 220px;
+  max-width: 280px;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+.popup-essaim h3 {
+  font-size: 1rem;
+  color: var(--bois);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.popup-essaim .date { color: var(--gris); font-size: 0.82rem; margin-bottom: 0.5rem; }
+.popup-essaim .desc { margin-bottom: 0.75rem; color: var(--texte); }
+.popup-essaim .deposant { font-size: 0.85rem; color: var(--vert); margin-bottom: 0.75rem; }
+.popup-essaim .btn-contact {
+  display: block;
+  background: var(--vert);
+  color: var(--blanc);
+  text-align: center;
+  border-radius: 1.5rem;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.popup-essaim .btn-contact:hover { background: var(--vert-clair); color: var(--blanc); }
+
+/* ── Page formulaire ── */
+.page-formulaire {
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 0 1rem 4rem;
+}
+
+.page-formulaire h2 {
+  color: var(--bois);
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.page-formulaire .sous-titre {
+  color: var(--gris);
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+.carte-form {
+  background: var(--blanc);
+  border: 1px solid #e0d0a0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px var(--ombre);
+}
+.carte-form h3 {
+  font-size: 1rem;
+  color: var(--bois);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--miel-pale);
+}
+
+.champ {
+  margin-bottom: 1.1rem;
+}
+.champ label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bois);
+  margin-bottom: 0.3rem;
+}
+.champ label .requis { color: var(--miel); margin-left: 2px; }
+.champ label .optionnel {
+  font-weight: 400;
+  color: var(--gris);
+  font-size: 0.8rem;
+}
+
+.champ input,
+.champ textarea,
+.champ select {
+  width: 100%;
+  border: 1.5px solid #d0c090;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--texte);
+  background: var(--fond);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.champ input:focus,
+.champ textarea:focus,
+.champ select:focus {
+  border-color: var(--miel);
+  box-shadow: 0 0 0 3px rgba(232,160,32,0.15);
+}
+.champ input.erreur,
+.champ textarea.erreur,
+.champ select.erreur {
+  border-color: #c0392b;
+}
+.champ .msg-erreur {
+  display: none;
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+.champ.invalide .msg-erreur { display: block; }
+
+.champ textarea { min-height: 90px; resize: vertical; }
+
+.deux-colonnes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Carte mini pour localisation */
+#carte-form {
+  width: 100%;
+  height: 260px;
+  border-radius: 8px;
+  border: 1.5px solid #d0c090;
+  overflow: hidden;
+  cursor: crosshair;
+  margin-top: 0.5rem;
+}
+.info-coords {
+  font-size: 0.8rem;
+  color: var(--gris);
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+
+/* Bouton soumettre */
+.btn-soumettre {
+  width: 100%;
+  background: var(--miel);
+  color: var(--bois);
+  border: none;
+  border-radius: 2rem;
+  padding: 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 0.5rem;
+}
+.btn-soumettre:hover:not(:disabled) { background: var(--miel-clair); transform: scale(1.01); }
+.btn-soumettre:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Message confirmation */
+#confirmation {
+  display: none;
+  background: #eaf6e4;
+  border: 1.5px solid var(--vert-clair);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--vert);
+}
+#confirmation .ico { font-size: 2.5rem; margin-bottom: 0.5rem; }
+#confirmation h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+#confirmation p { font-size: 0.95rem; color: var(--texte); }
+#confirmation .lien-retour {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--bois);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Message d'erreur global */
+#erreur-global {
+  display: none;
+  background: #fde8e8;
+  border: 1.5px solid #e74c3c;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  color: #c0392b;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Utilitaires ── */
+.retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--bois);
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+.retour:hover { color: var(--miel); }
+
+/* ── Responsive ── */
+@media (max-width: 520px) {
+  .deux-colonnes { grid-template-columns: 1fr; gap: 0; }
+  header h1 { font-size: 1rem; }
+  .btn-header { font-size: 0.85rem; padding: 0.4rem 0.85rem; }
+  #btn-signaler { bottom: 1.25rem; right: 1rem; padding: 0.75rem 1.1rem; font-size: 0.95rem; }
+  .carte-form { padding: 1rem; }
+  .page-formulaire { margin-top: 1rem; }
+}

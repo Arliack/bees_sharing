@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partage d'essaims 🐝</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Styles du projet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <h1><span class="emoji">🐝</span> Partage d'essaims</h1>
+    <a href="deposer.html" class="btn-header">+ Signaler un essaim</a>
+  </header>
+
+  <div id="zone-carte">
+    <!-- Barre de filtre -->
+    <div id="barre-filtre">
+      <label for="filtre-dept">Département :</label>
+      <input
+        type="text"
+        id="filtre-dept"
+        placeholder="ex : Gironde, 33, Loire…"
+        aria-label="Filtrer par département"
+      />
+      <span id="compteur">Chargement…</span>
+    </div>
+
+    <!-- Carte Leaflet -->
+    <div id="carte" role="application" aria-label="Carte des essaims disponibles"></div>
+  </div>
+
+  <!-- Bouton flottant -->
+  <a href="deposer.html" id="btn-signaler" aria-label="Signaler un essaim">
+    🐝 Signaler un essaim
+  </a>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Scripts du projet -->
+  <script src="js/config.js"></script>
+  <script src="js/carte.js"></script>
+  <script src="js/annonces.js"></script>
+
+  <script>
+    // Point d'entrée : initialise la carte puis charge les annonces
+    document.addEventListener('DOMContentLoaded', () => {
+      initialiserCarte();
+      chargerEssaims();
+    });
+  </script>
+</body>
+</html>

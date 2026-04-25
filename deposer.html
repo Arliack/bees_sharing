@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signaler un essaim 🐝</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Styles du projet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header>
+    <h1><span class="emoji">🐝</span> Partage d'essaims</h1>
+    <a href="index.html" class="btn-header">← Voir la carte</a>
+  </header>
+
+  <main class="page-formulaire">
+
+    <a href="index.html" class="retour">← Retour à la carte</a>
+
+    <h2>🐝 Signaler un essaim</h2>
+    <p class="sous-titre">Remplissez ce formulaire pour mettre un essaim à disposition d'un apiculteur.</p>
+
+    <!-- Message de confirmation (affiché après soumission) -->
+    <div id="confirmation" role="alert">
+      <div class="ico">✅</div>
+      <h3>Essaim signalé avec succès !</h3>
+      <p>Votre annonce est maintenant visible sur la carte. Un apiculteur vous contactera bientôt.</p>
+      <a href="index.html" class="lien-retour">Voir la carte</a>
+    </div>
+
+    <!-- Message d'erreur global -->
+    <div id="erreur-global" role="alert"></div>
+
+    <!-- Formulaire -->
+    <form id="formulaire" novalidate>
+
+      <!-- Bloc : Vos coordonnées -->
+      <div class="carte-form">
+        <h3>👤 Vos coordonnées</h3>
+
+        <div class="deux-colonnes">
+          <div class="champ">
+            <label for="prenom">Prénom <span class="requis">*</span></label>
+            <input type="text" id="prenom" name="prenom" autocomplete="given-name"
+              placeholder="Marie" required />
+            <span class="msg-erreur">Prénom requis (2 caractères minimum)</span>
+          </div>
+
+          <div class="champ">
+            <label for="telephone">Téléphone <span class="optionnel">(facultatif)</span></label>
+            <input type="tel" id="telephone" name="telephone" autocomplete="tel"
+              placeholder="06 12 34 56 78" />
+          </div>
+        </div>
+
+        <div class="champ">
+          <label for="email">Email <span class="requis">*</span></label>
+          <input type="email" id="email" name="email" autocomplete="email"
+            placeholder="marie@exemple.fr" required />
+          <span class="msg-erreur">Adresse email invalide</span>
+          <small style="color:var(--gris);font-size:0.78rem;display:block;margin-top:0.2rem;">
+            Votre email ne sera jamais affiché publiquement. Il servira uniquement aux personnes intéressées à vous contacter.
+          </small>
+        </div>
+      </div>
+
+      <!-- Bloc : Localisation de l'essaim -->
+      <div class="carte-form">
+        <h3>📍 Localisation de l'essaim</h3>
+
+        <div class="deux-colonnes">
+          <div class="champ">
+            <label for="commune">Commune <span class="requis">*</span></label>
+            <input type="text" id="commune" name="commune"
+              placeholder="Saint-Émilion" required />
+            <span class="msg-erreur">Commune requise</span>
+          </div>
+
+          <div class="champ">
+            <label for="departement">Département <span class="requis">*</span></label>
+            <input type="text" id="departement" name="departement"
+              placeholder="Gironde" required />
+            <span class="msg-erreur">Département requis</span>
+          </div>
+        </div>
+
+        <!-- Mini-carte cliquable -->
+        <div class="champ" id="champ-carte">
+          <label>Position précise <span class="requis">*</span></label>
+          <div id="carte-form" role="application" aria-label="Cliquez sur la carte pour placer l'essaim"></div>
+          <p class="info-coords" id="coords-affichage">
+            Cliquez sur la carte pour indiquer l'emplacement exact de l'essaim. Vous pouvez ensuite déplacer le marqueur.
+          </p>
+          <span class="msg-erreur">Veuillez cliquer sur la carte pour placer l'essaim</span>
+        </div>
+      </div>
+
+      <!-- Bloc : Détails de l'essaim -->
+      <div class="carte-form">
+        <h3>🍯 Détails de l'essaim</h3>
+
+        <div class="champ">
+          <label for="date-dispo">Date de disponibilité</label>
+          <input type="date" id="date-dispo" name="date-dispo" />
+        </div>
+
+        <div class="champ">
+          <label for="description">Description <span class="optionnel">(facultatif)</span></label>
+          <textarea id="description" name="description"
+            placeholder="Ex : essaim sur branche de pommier, accessible facilement, environ 1 kg, formé hier matin…"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-soumettre" id="btn-soumettre">
+        🐝 Signaler cet essaim
+      </button>
+
+    </form>
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Scripts du projet -->
+  <script src="js/config.js"></script>
+  <script src="js/formulaire.js"></script>
+
+</body>
+</html>
