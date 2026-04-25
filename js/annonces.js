@@ -1,13 +1,15 @@
 // Chargement des essaims depuis Supabase et affichage sur la carte
 
+// Seuil au-delà duquel un essaim est masqué de la carte (en jours)
+const EXPIRATION_JOURS = 7;
+
 async function chargerEssaims() {
   const compteur = document.getElementById('compteur');
 
   try {
-    // Récupère uniquement les essaims disponibles, du plus récent au plus ancien
     const { data: essaims, error } = await supabaseClient
       .from('essaims')
-      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, email')
+      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, email, created_at')
       .eq('disponible', true)
       .order('created_at', { ascending: false });
 
@@ -18,14 +20,33 @@ async function chargerEssaims() {
       return;
     }
 
-    essaims.forEach(essaim => ajouterMarqueur(essaim));
+    let nbAffiches = 0;
+    let nbNouveaux = 0;
+
+    essaims.forEach(essaim => {
+      const ageHeures = calculerAgeHeures(essaim.created_at);
+
+      // Masque les annonces trop vieilles (l'essaim a probablement été récupéré)
+      if (ageHeures > EXPIRATION_JOURS * 24) return;
+
+      ajouterMarqueur(essaim, ageHeures);
+      nbAffiches++;
+      if (ageHeures < 24) nbNouveaux++;
+    });
 
     if (compteur) {
-      compteur.textContent = `${essaims.length} essaim${essaims.length > 1 ? 's' : ''} disponible${essaims.length > 1 ? 's' : ''}`;
+      if (nbAffiches === 0) {
+        compteur.textContent = 'Aucun essaim disponible pour le moment';
+      } else {
+        const labelNouveaux = nbNouveaux > 0
+          ? ` dont ${nbNouveaux} 🟢 nouveau${nbNouveaux > 1 ? 'x' : ''}`
+          : '';
+        compteur.textContent =
+          `${nbAffiches} essaim${nbAffiches > 1 ? 's' : ''} disponible${nbAffiches > 1 ? 's' : ''}${labelNouveaux}`;
+      }
     }
 
-    // Active le filtre département une fois les données chargées
-    activerFiltre(essaims.length);
+    activerFiltre(nbAffiches);
 
   } catch (err) {
     console.error('Erreur lors du chargement des essaims :', err);
@@ -34,6 +55,11 @@ async function chargerEssaims() {
       compteur.style.color = '#c0392b';
     }
   }
+}
+
+// Calcule l'âge d'une annonce en heures à partir de sa date de création
+function calculerAgeHeures(dateStr) {
+  return (Date.now() - new Date(dateStr).getTime()) / (1000 * 3600);
 }
 
 function activerFiltre(totalInitial) {
