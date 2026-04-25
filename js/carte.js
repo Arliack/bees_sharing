@@ -242,6 +242,25 @@ function supprimerMarqueurParToken(token) {
   if (idx === -1) return;
   tousLesMarqueurs[idx].marqueur.remove();
   tousLesMarqueurs.splice(idx, 1);
+  mettreAJourCompteur();
+}
+
+// Recalcule et affiche le nombre d'essaims visibles dans le bandeau
+function mettreAJourCompteur() {
+  const compteur = document.getElementById('compteur');
+  if (!compteur) return;
+
+  const dept  = document.getElementById('filtre-dept')?.value  || '';
+  const ville = document.getElementById('filtre-ville')?.value || '';
+  const filtre = dept || ville;
+
+  // Si un filtre est actif, compte uniquement les marqueurs encore sur la carte
+  const nb = filtre
+    ? tousLesMarqueurs.filter(({ marqueur }) => carteLeaflet.hasLayer(marqueur)).length
+    : tousLesMarqueurs.length;
+
+  const mot = filtre ? 'trouvé' : 'disponible';
+  compteur.textContent = `${nb} essaim${nb !== 1 ? 's' : ''} ${mot}${nb !== 1 ? 's' : ''}`;
 }
 
 // Échappe le HTML pour éviter les injections XSS dans les popups
