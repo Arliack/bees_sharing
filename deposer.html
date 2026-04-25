@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Signaler un essaim 🐝</title>
 
+  <!-- Google Font DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Styles du projet -->
@@ -19,17 +22,11 @@
 
   <main class="page-formulaire">
 
-    <a href="index.html" class="retour">← Retour à la carte</a>
-
-    <h2>🐝 Signaler un essaim</h2>
-    <p class="sous-titre">Remplissez ce formulaire pour mettre un essaim à disposition d'un apiculteur.</p>
-
     <!-- Message de confirmation (affiché après soumission) -->
     <div id="confirmation" role="alert">
       <div class="ico">✅</div>
       <h3>Essaim signalé avec succès !</h3>
       <p>Votre annonce est maintenant visible sur la carte. Un apiculteur vous contactera bientôt.</p>
-      <!-- Lien de gestion injecté dynamiquement par formulaire.js -->
       <div id="lien-gestion"></div>
       <a href="index.html" class="lien-retour">Voir la carte</a>
     </div>
@@ -37,91 +34,116 @@
     <!-- Message d'erreur global -->
     <div id="erreur-global" role="alert"></div>
 
-    <!-- Formulaire -->
+    <!-- Formulaire multi-étapes -->
     <form id="formulaire" novalidate>
 
-      <!-- Bloc : Vos coordonnées -->
-      <div class="carte-form">
-        <h3>👤 Vos coordonnées</h3>
-
-        <div class="deux-colonnes">
-          <div class="champ">
-            <label for="prenom">Prénom <span class="requis">*</span></label>
-            <input type="text" id="prenom" name="prenom" autocomplete="given-name"
-              placeholder="Marie" required />
-            <span class="msg-erreur">Prénom requis (2 caractères minimum)</span>
-          </div>
-
-          <div class="champ">
-            <label for="telephone">Téléphone <span class="optionnel">(facultatif)</span></label>
-            <input type="tel" id="telephone" name="telephone" autocomplete="tel"
-              placeholder="06 12 34 56 78" />
-          </div>
-        </div>
-
-        <div class="champ">
-          <label for="email">Email <span class="requis">*</span></label>
-          <input type="email" id="email" name="email" autocomplete="email"
-            placeholder="marie@exemple.fr" required />
-          <span class="msg-erreur">Adresse email invalide</span>
-          <small style="color:var(--gris);font-size:0.78rem;display:block;margin-top:0.2rem;">
-            Votre email ne sera jamais affiché publiquement. Il servira uniquement aux personnes intéressées à vous contacter.
-          </small>
-        </div>
+      <!-- Indicateur d'étapes -->
+      <div class="step-indicateur">
+        <div class="step-dot actif" id="dot-1">1</div>
+        <div class="step-trait" id="trait-1"></div>
+        <div class="step-dot" id="dot-2">2</div>
+        <div class="step-trait" id="trait-2"></div>
+        <div class="step-dot" id="dot-3">3</div>
       </div>
 
-      <!-- Bloc : Localisation de l'essaim -->
-      <div class="carte-form">
-        <h3>📍 Localisation de l'essaim</h3>
+      <!-- Étape 1 : Vos coordonnées -->
+      <div id="etape-1">
+        <div class="carte-form">
+          <h3>👤 Vos coordonnées</h3>
 
-        <div class="deux-colonnes">
-          <div class="champ">
-            <label for="commune">Commune <span class="requis">*</span></label>
-            <div class="autocomplete-wrapper">
-              <input type="text" id="commune" name="commune"
-                placeholder="Tapez une ville…" autocomplete="off" required />
-              <ul id="commune-suggestions" class="autocomplete-liste" hidden role="listbox"></ul>
+          <div class="deux-colonnes">
+            <div class="champ">
+              <label for="prenom">Prénom <span class="requis">*</span></label>
+              <input type="text" id="prenom" name="prenom" autocomplete="given-name"
+                placeholder="Marie" required />
+              <span class="msg-erreur">Prénom requis (2 caractères minimum)</span>
             </div>
-            <span class="msg-erreur">Commune requise</span>
+
+            <div class="champ">
+              <label for="telephone">Téléphone <span class="optionnel">(facultatif)</span></label>
+              <input type="tel" id="telephone" name="telephone" autocomplete="tel"
+                placeholder="06 12 34 56 78" />
+            </div>
           </div>
 
           <div class="champ">
-            <label for="departement">Département <span class="requis">*</span></label>
-            <input type="text" id="departement" name="departement"
-              placeholder="Auto-rempli via la commune"
-              readonly style="background:var(--fond);color:var(--gris);cursor:default;" required />
-            <span class="msg-erreur">Département requis</span>
+            <label for="email">Email <span class="requis">*</span></label>
+            <input type="email" id="email" name="email" autocomplete="email"
+              placeholder="marie@exemple.fr" required />
+            <span class="msg-erreur">Adresse email invalide</span>
+            <small style="color:var(--gris);font-size:0.78rem;display:block;margin-top:0.2rem;">
+              Votre email ne sera jamais affiché publiquement. Il servira uniquement aux personnes intéressées à vous contacter.
+            </small>
           </div>
         </div>
 
-        <!-- Mini-carte cliquable -->
-        <div class="champ" id="champ-carte">
-          <label>Position précise <span class="requis">*</span></label>
-          <button type="button" id="btn-geoloc" class="btn-geoloc" onclick="utiliserMaPosition()">
-            📍 Ma position
-          </button>
-          <div id="carte-form" role="application" aria-label="Cliquez sur la carte pour placer l'essaim"></div>
-          <p class="info-coords" id="coords-affichage">
-            Utilisez "Ma position" ou cliquez sur la carte pour indiquer l'emplacement de l'essaim.
-          </p>
-          <span class="msg-erreur">Veuillez cliquer sur la carte pour placer l'essaim</span>
+        <div class="step-nav">
+          <button type="button" id="btn-prec-1" hidden class="btn-precedent">← Retour</button>
+          <button type="button" onclick="allerEtape(2)" class="btn-suivant">Continuer →</button>
         </div>
       </div>
 
-      <!-- Bloc : Détails de l'essaim -->
-      <div class="carte-form">
-        <h3>🍯 Détails de l'essaim</h3>
+      <!-- Étape 2 : Localisation -->
+      <div id="etape-2" hidden>
+        <div class="carte-form">
+          <h3>📍 Localisation de l'essaim</h3>
 
-        <div class="champ">
-          <label for="description">Description <span class="optionnel">(facultatif)</span></label>
-          <textarea id="description" name="description"
-            placeholder="Ex : essaim sur branche de pommier, accessible facilement, environ 1 kg, formé hier matin…"></textarea>
+          <div class="deux-colonnes">
+            <div class="champ">
+              <label for="commune">Commune <span class="requis">*</span></label>
+              <div class="autocomplete-wrapper">
+                <input type="text" id="commune" name="commune"
+                  placeholder="Tapez une ville…" autocomplete="off" required />
+                <ul id="commune-suggestions" class="autocomplete-liste" hidden role="listbox"></ul>
+              </div>
+              <span class="msg-erreur">Commune requise</span>
+            </div>
+
+            <div class="champ">
+              <label for="departement">Département <span class="requis">*</span></label>
+              <input type="text" id="departement" name="departement"
+                placeholder="Auto-rempli via la commune"
+                readonly style="background:var(--fond);color:var(--gris);cursor:default;" required />
+              <span class="msg-erreur">Département requis</span>
+            </div>
+          </div>
+
+          <div class="champ" id="champ-carte">
+            <label>Position précise <span class="requis">*</span></label>
+            <button type="button" id="btn-geoloc" class="btn-geoloc" onclick="utiliserMaPosition()">
+              📍 Ma position
+            </button>
+            <div id="carte-form" role="application" aria-label="Cliquez sur la carte pour placer l'essaim"></div>
+            <p class="info-coords" id="coords-affichage">
+              Utilisez "Ma position" ou cliquez sur la carte pour indiquer l'emplacement de l'essaim.
+            </p>
+            <span class="msg-erreur">Veuillez cliquer sur la carte pour placer l'essaim</span>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button type="button" onclick="allerEtape(1)" class="btn-precedent">← Retour</button>
+          <button type="button" onclick="allerEtape(3)" class="btn-suivant">Continuer →</button>
         </div>
       </div>
 
-      <button type="submit" class="btn-soumettre" id="btn-soumettre">
-        🐝 Signaler cet essaim
-      </button>
+      <!-- Étape 3 : Détails + envoi -->
+      <div id="etape-3" hidden>
+        <div class="carte-form">
+          <h3>🍯 Détails de l'essaim</h3>
+
+          <div class="champ">
+            <label for="description">Description <span class="optionnel">(facultatif)</span></label>
+            <textarea id="description" name="description"
+              placeholder="Ex : essaim sur branche de pommier, accessible facilement, environ 1 kg, formé hier matin…"></textarea>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button type="button" onclick="allerEtape(2)" class="btn-precedent">← Retour</button>
+          <button type="submit" class="btn-suivant" id="btn-soumettre">🐝 Signaler cet essaim</button>
+        </div>
+      </div>
 
     </form>
   </main>

@@ -56,12 +56,27 @@ function genererSelectDepartements(selectId, labelVide) {
   });
 }
 
+async function chargerStats() {
+  const debut = new Date(new Date().getFullYear(), 0, 1).toISOString();
+  try {
+    const [{ count: total }, { count: recuperes }] = await Promise.all([
+      supabaseClient.from('essaims').select('*', { count: 'exact', head: true }).gte('created_at', debut),
+      supabaseClient.from('essaims').select('*', { count: 'exact', head: true }).gte('created_at', debut).eq('statut', 'recupere'),
+    ]);
+    const elSaison    = document.getElementById('stat-saison');
+    const elRecuperes = document.getElementById('stat-recuperes');
+    if (elSaison)    elSaison.textContent    = total     ?? '–';
+    if (elRecuperes) elRecuperes.textContent = recuperes ?? '–';
+  } catch (e) { console.warn('Stats saison :', e); }
+}
+
 async function chargerEssaims() {
   const compteur = document.getElementById('compteur');
 
   // Peuple les selects de départements
   genererSelectDepartements('filtre-dept');
   genererSelectDepartements('abonne-dept', 'Choisir un département…');
+  chargerStats();
 
   try {
     const { data: essaims, error } = await supabaseClient
@@ -87,6 +102,9 @@ async function chargerEssaims() {
       nbAffiches++;
       if (ageHeures < 24) nbNouveaux++;
     });
+
+    const elDispo = document.getElementById('stat-disponibles');
+    if (elDispo) elDispo.textContent = nbAffiches;
 
     if (compteur) {
       if (nbAffiches === 0) {

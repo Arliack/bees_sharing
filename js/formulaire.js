@@ -4,6 +4,62 @@ let latChoisie = null;
 let lngChoisie = null;
 let carteFormulaire = null;
 let marqueurPosition = null;
+let carteFormulaireInitialisee = false;
+
+// ── Navigation multi-étapes ───────────────────────────────────────────────────
+
+let etapeActuelle = 1;
+
+function allerEtape(n) {
+  if (n > etapeActuelle && !validerEtape(etapeActuelle)) {
+    const premier = document.querySelector(`#etape-${etapeActuelle} .invalide`);
+    if (premier) premier.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  document.getElementById(`etape-${etapeActuelle}`).hidden = true;
+  etapeActuelle = n;
+  document.getElementById(`etape-${etapeActuelle}`).hidden = false;
+
+  if (n === 2 && !carteFormulaireInitialisee) {
+    carteFormulaireInitialisee = true;
+    initialiserCarteFormulaire();
+  } else if (n === 2 && carteFormulaire) {
+    setTimeout(() => carteFormulaire.invalidateSize(), 50);
+  }
+
+  mettreAJourIndicateur();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validerEtape(n) {
+  if (n === 1) {
+    const ok1 = validerChamp('prenom', v => v.length >= 2);
+    const ok2 = validerChamp('email',  v => validerEmail(v));
+    return ok1 && ok2;
+  }
+  if (n === 2) {
+    const ok1 = validerChamp('commune',     v => v.length >= 2);
+    const ok2 = validerChamp('departement', v => v.length >= 1);
+    const carteValide = latChoisie !== null;
+    const champCarte = document.getElementById('champ-carte');
+    if (champCarte) champCarte.classList.toggle('invalide', !carteValide);
+    return ok1 && ok2 && carteValide;
+  }
+  return true;
+}
+
+function mettreAJourIndicateur() {
+  [1, 2, 3].forEach(i => {
+    const dot = document.getElementById(`dot-${i}`);
+    if (!dot) return;
+    dot.classList.toggle('actif', i === etapeActuelle);
+    dot.classList.toggle('fait',  i < etapeActuelle);
+  });
+  document.querySelectorAll('.step-trait').forEach((trait, idx) => {
+    trait.classList.toggle('fait', idx + 1 < etapeActuelle);
+  });
+}
 
 // ── Initialisation de la mini-carte ──────────────────────────────────────────
 
@@ -245,7 +301,7 @@ async function soumettreFormulaire(e) {
     erreurGlobal.textContent = `Erreur lors de l'envoi : ${err.message || 'Problème réseau, veuillez réessayer.'}`;
     erreurGlobal.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = 'Signaler cet essaim';
+    btn.textContent = '🐝 Signaler cet essaim';
   }
 }
 
@@ -271,8 +327,6 @@ function copierLien(url, btn) {
 // ── Initialisation ────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  initialiserCarteFormulaire();
-
   const form = document.getElementById('formulaire');
   if (form) form.addEventListener('submit', soumettreFormulaire);
 

@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Partage d'essaims 🐝</title>
 
+  <!-- Google Font DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Styles du projet -->
@@ -16,6 +19,13 @@
     <h1><span class="emoji">🐝</span> Partage d'essaims</h1>
     <a href="deposer.html" class="btn-header">+ Signaler un essaim</a>
   </header>
+
+  <!-- Bandeau stats saison -->
+  <div id="stats-barre">
+    <span>🌸 Cette saison : <strong id="stat-saison">…</strong> essaims signalés</span>
+    <span>✅ <strong id="stat-recuperes">…</strong> récupérés</span>
+    <span>🐝 <strong id="stat-disponibles">…</strong> disponibles</span>
+  </div>
 
   <div id="zone-carte">
     <!-- Barre de filtre -->
@@ -72,6 +82,13 @@
 
     <!-- Carte Leaflet -->
     <div id="carte" role="application" aria-label="Carte des essaims disponibles"></div>
+  </div>
+
+  <!-- Bottom-sheet (mobile) -->
+  <div id="bs-overlay" hidden onclick="fermerBottomSheet()"></div>
+  <div id="bottom-sheet" hidden>
+    <div class="bs-handle" onclick="fermerBottomSheet()"></div>
+    <div id="bs-contenu"></div>
   </div>
 
   <!-- Bouton flottant -->

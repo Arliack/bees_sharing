@@ -1,3 +1,6 @@
+/* ── Google Font DM Sans ── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
 /* ── Palette naturelle ── */
 :root {
   --miel:       #e8a020;
@@ -19,7 +22,7 @@
 
 html, body {
   height: 100%;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
   background: var(--fond);
   color: var(--texte);
   font-size: 16px;
@@ -357,7 +360,7 @@ header h1 .emoji { font-size: 1.5rem; }
 #zone-carte {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 56px - 34px); /* header + stats barre */
 }
 
 #barre-filtre {
@@ -687,6 +690,179 @@ header h1 .emoji { font-size: 1.5rem; }
   font-weight: 500;
 }
 .retour:hover { color: var(--miel); }
+
+/* ── Marqueur pulsant (essaims < 24h) ── */
+@keyframes pulse-marker {
+  0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+.marqueur-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  background: rgba(90, 122, 58, 0.35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse-marker 2s ease-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Badges d'âge dans les popups ── */
+.badge-age {
+  display: inline-block;
+  background: #f0e8d0;
+  color: var(--bois);
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.badge-nouveau {
+  background: #eaf6e4;
+  color: var(--vert);
+}
+
+/* ── Bandeau statistiques saison ── */
+#stats-barre {
+  background: var(--vert);
+  color: var(--blanc);
+  padding: 0.38rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  flex-wrap: wrap;
+  letter-spacing: .01em;
+}
+#stats-barre strong {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+@media (max-width: 520px) {
+  #stats-barre { gap: 1rem; font-size: 0.75rem; }
+}
+
+/* ── Bottom-sheet (mobile) ── */
+#bs-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  z-index: 1200;
+  backdrop-filter: blur(1px);
+}
+#bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--blanc);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -4px 28px rgba(0, 0, 0, 0.22);
+  z-index: 1201;
+  max-height: 82vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.34s cubic-bezier(.4, 0, .2, 1);
+  padding: 0 1.25rem 2.5rem;
+}
+#bottom-sheet.ouvert { transform: translateY(0); }
+.bs-handle {
+  width: 44px;
+  height: 4px;
+  background: #d8cbb0;
+  border-radius: 2px;
+  margin: 0.9rem auto 1.1rem;
+  cursor: pointer;
+}
+#bs-contenu .popup-essaim {
+  max-width: none;
+  min-width: 0;
+  padding: 0;
+  font-size: 1rem;
+}
+#bs-contenu .popup-essaim h3 { font-size: 1.15rem; }
+
+/* ── Formulaire multi-étapes ── */
+.step-indicateur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+  gap: 0;
+}
+.step-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e8dfc8;
+  color: var(--gris);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+}
+.step-dot.actif {
+  background: var(--miel);
+  color: var(--bois);
+  box-shadow: 0 0 0 4px rgba(232, 160, 32, 0.2);
+}
+.step-dot.fait {
+  background: var(--vert);
+  color: var(--blanc);
+}
+.step-trait {
+  flex: 1;
+  height: 2px;
+  background: #e8dfc8;
+  max-width: 64px;
+  transition: background 0.25s;
+}
+.step-trait.fait { background: var(--vert); }
+
+.step-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.btn-precedent {
+  background: transparent;
+  color: var(--bois);
+  border: 1.5px solid var(--bois-clair);
+  border-radius: 2rem;
+  padding: 0.72rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.btn-precedent:hover { background: var(--fond); }
+.btn-suivant {
+  flex: 1;
+  background: var(--miel);
+  color: var(--bois);
+  border: none;
+  border-radius: 2rem;
+  padding: 0.72rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-suivant:hover:not(:disabled) { background: var(--miel-clair); transform: scale(1.01); }
+.btn-suivant:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── Responsive ── */
 @media (max-width: 520px) {
