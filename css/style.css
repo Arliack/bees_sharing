@@ -447,16 +447,22 @@ header h1 .emoji { font-size: 1.5rem; }
 .popup-essaim .deposant { font-size: 0.85rem; color: var(--vert); margin-bottom: 0.75rem; }
 .popup-essaim .btn-contact {
   display: block;
+  width: 100%;
   background: var(--vert);
   color: var(--blanc);
   text-align: center;
+  border: none;
   border-radius: 1.5rem;
   padding: 0.45rem 1rem;
   font-weight: 600;
+  font-size: inherit;
+  font-family: inherit;
   text-decoration: none;
+  cursor: pointer;
   transition: background 0.2s;
 }
-.popup-essaim .btn-contact:hover { background: var(--vert-clair); color: var(--blanc); }
+.popup-essaim .btn-contact:hover:not(:disabled) { background: var(--vert-clair); color: var(--blanc); }
+.popup-essaim .btn-contact:disabled { opacity: 0.7; cursor: not-allowed; }
 
 /* Section gestion dans le popup */
 .popup-gestion {

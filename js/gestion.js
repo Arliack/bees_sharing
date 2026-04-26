@@ -4,9 +4,9 @@ async function chargerEssaim(token) {
   const zone = document.getElementById('zone-gestion');
 
   try {
-    // Lecture publique autorisée par la politique RLS existante
+    // Lecture via la vue publique (email exclu) — token présent dans la vue
     const { data: essaim, error } = await supabaseClient
-      .from('essaims')
+      .from('essaims_publics')
       .select('commune, departement, prenom, description, created_at, disponible, statut')
       .eq('token', token)
       .single();

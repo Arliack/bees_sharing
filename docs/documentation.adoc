@@ -582,13 +582,14 @@ Trois voies pour clôturer un essaim :
 
 === Confidentialité de l'email
 
-L'email du déposant ne transite pas dans le HTML public. Il est :
+L'email du déposant n'est **jamais chargé en masse** avec les données de la carte.
 
-* Stocké en base, hors du SELECT public (non, il EST dans le SELECT — attention).
-* Utilisé uniquement dans un `href="mailto:..."` construit côté JS.
-* Jamais affiché en clair dans le DOM.
+* La vue `essaims_publics` exclut les colonnes `email` et `telephone`.
+* Le rôle `anon` n'a aucun droit `SELECT` direct sur la table `essaims` (REVOKE explicite).
+* L'email n'est récupéré qu'à la demande, via la RPC `obtenir_contact_essaim(p_id bigint)`, uniquement quand l'utilisateur clique sur « Je suis intéressé(e) ».
+* Il transite une seule fois, pour un seul essaim, et sert immédiatement à construire le `mailto:` en JS. Il n'est jamais inséré dans le DOM.
 
-NOTE: Le SELECT actuel inclut `email`. Si la confidentialité est critique, créer une Vue Supabase qui exclut la colonne, ou utiliser une RPC dédiée pour la génération du `mailto:`.
+Ce mécanisme empêche le moissonnage en masse des emails par un simple appel API.
 
 '''
 

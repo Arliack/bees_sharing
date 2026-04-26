@@ -1567,32 +1567,26 @@ Affiche le lien de gestion avec bouton « Copier ».</p>
 <div class="sect2">
 <h3 id="_confidentialité_de_lemail"><a class="anchor" href="#_confidentialité_de_lemail"></a><a class="link" href="#_confidentialité_de_lemail">7.7. Confidentialité de l&#8217;email</a></h3>
 <div class="paragraph">
-<p>L&#8217;email du déposant ne transite pas dans le HTML public. Il est :</p>
+<p>L&#8217;email du déposant n&#8217;est <strong>jamais chargé en masse</strong> avec les données de la carte.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Stocké en base, hors du SELECT public (non, il EST dans le SELECT — attention).</p>
+<p>La vue <code>essaims_publics</code> exclut les colonnes <code>email</code> et <code>telephone</code>.</p>
 </li>
 <li>
-<p>Utilisé uniquement dans un <code>href="mailto:&#8230;&#8203;"</code> construit côté JS.</p>
+<p>Le rôle <code>anon</code> n&#8217;a aucun droit <code>SELECT</code> direct sur la table <code>essaims</code> (REVOKE explicite).</p>
 </li>
 <li>
-<p>Jamais affiché en clair dans le DOM.</p>
+<p>L&#8217;email n&#8217;est récupéré qu&#8217;à la demande, via la RPC <code>obtenir_contact_essaim(p_id bigint)</code>, uniquement quand l&#8217;utilisateur clique sur « Je suis intéressé(e) ».</p>
+</li>
+<li>
+<p>Il transite une seule fois, pour un seul essaim, et sert immédiatement à construire le <code>mailto:</code> en JS. Il n&#8217;est jamais inséré dans le DOM.</p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Le SELECT actuel inclut <code>email</code>. Si la confidentialité est critique, créer une Vue Supabase qui exclut la colonne, ou utiliser une RPC dédiée pour la génération du <code>mailto:</code>.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>Ce mécanisme empêche le moissonnage en masse des emails par un simple appel API.</p>
 </div>
 <hr>
 </div>
@@ -1902,7 +1896,7 @@ Pour un usage saisonnier (printemps-été), le tier gratuit est largement suffis
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-04-25 18:16:29 +0200
+Last updated 2026-04-26 09:25:18 +0200
 </div>
 </div>
 </body>

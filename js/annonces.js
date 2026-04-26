@@ -60,8 +60,8 @@ async function chargerStats() {
   const debut = new Date(new Date().getFullYear(), 0, 1).toISOString();
   try {
     const [{ count: total }, { count: recuperes }] = await Promise.all([
-      supabaseClient.from('essaims').select('*', { count: 'exact', head: true }).gte('created_at', debut),
-      supabaseClient.from('essaims').select('*', { count: 'exact', head: true }).gte('created_at', debut).eq('statut', 'recupere'),
+      supabaseClient.from('essaims_publics').select('*', { count: 'exact', head: true }).gte('created_at', debut),
+      supabaseClient.from('essaims_publics').select('*', { count: 'exact', head: true }).gte('created_at', debut).eq('statut', 'recupere'),
     ]);
     const elSaison    = document.getElementById('stat-saison');
     const elRecuperes = document.getElementById('stat-recuperes');
@@ -80,8 +80,8 @@ async function chargerEssaims() {
 
   try {
     const { data: essaims, error } = await supabaseClient
-      .from('essaims')
-      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, email, created_at, token')
+      .from('essaims_publics')
+      .select('id, latitude, longitude, commune, departement, description, date_dispo, prenom, created_at, token')
       .eq('disponible', true)
       .order('created_at', { ascending: false });
 

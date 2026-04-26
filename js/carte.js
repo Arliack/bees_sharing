@@ -62,8 +62,6 @@ function construireContenuEssaim(essaim, ageHeures) {
     ? `<p style="background:#fef9e7;border:1px solid #f0c040;border-radius:6px;padding:.4rem .6rem;font-size:.8rem;color:#7a6000;margin-bottom:.6rem;">⚠️ Signalé il y a plusieurs jours — contactez avant de vous déplacer.</p>`
     : '';
 
-  const mailHref = `mailto:${encodeURIComponent(essaim.email)}?subject=${encodeURIComponent('Essaim à ' + essaim.commune)}&body=${encodeURIComponent('Bonjour ' + essaim.prenom + ',\n\nJ\'ai vu votre annonce sur la plateforme de partage d\'essaims et je suis intéressé(e).\n\nCordialement')}`;
-
   return `
     <div class="popup-essaim">
       <h3>🐝 ${escapeHtml(essaim.commune)}</h3>
@@ -72,7 +70,7 @@ function construireContenuEssaim(essaim, ageHeures) {
       <p class="date">📅 Disponible le : ${dateDispo}</p>
       ${description}
       <p class="deposant">👤 Signalé par ${escapeHtml(essaim.prenom)}</p>
-      <a class="btn-contact" href="${mailHref}">✉️ Je suis intéressé(e)</a>
+      <button class="btn-contact" type="button" onclick="contacterDeposant(${essaim.id}, this)">✉️ Je suis intéressé(e)</button>
       <div class="popup-gestion">
         <p class="popup-gestion-titre">C'est votre essaim ?</p>
         <div class="popup-gestion-boutons">
@@ -248,6 +246,36 @@ function zoomSurDepartement(valeur) {
       }
     } catch (err) { console.warn('Geocoding département :', err); }
   }, 600);
+}
+
+// ── Utilitaires ───────────────────────────────────────────────────────────────
+
+// ── Contact à la demande (email jamais chargé en masse) ───────────────────────
+
+async function contacterDeposant(id, btn) {
+  const texteOriginal = btn.textContent;
+  btn.textContent = '⌛…';
+  btn.disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient
+      .rpc('obtenir_contact_essaim', { p_id: id });
+
+    if (error) throw error;
+    if (!data)  throw new Error('Essaim introuvable ou déjà clôturé.');
+
+    const mailHref = `mailto:${encodeURIComponent(data.email)}`
+      + `?subject=${encodeURIComponent('Essaim à ' + data.commune)}`
+      + `&body=${encodeURIComponent('Bonjour ' + data.prenom + ',\n\nJ\'ai vu votre annonce sur la plateforme de partage d\'essaims et je suis intéressé(e).\n\nCordialement')}`;
+
+    window.location.href = mailHref;
+    setTimeout(() => { btn.textContent = texteOriginal; btn.disabled = false; }, 600);
+
+  } catch (err) {
+    console.error('Erreur contact :', err);
+    btn.textContent = '❌ Erreur';
+    setTimeout(() => { btn.textContent = texteOriginal; btn.disabled = false; }, 2500);
+  }
 }
 
 // ── Utilitaires ───────────────────────────────────────────────────────────────
